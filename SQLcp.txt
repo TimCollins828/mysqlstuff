@@ -1,0 +1,225 @@
+--dbcc memorystatus
+--Buffer Pool Size
+--select * from master.dbo.sysprocesses 
+--where last_batch < getdate() - 1
+--and loginame not in ('sa', 'NT AUTHORITY\SYSTEM')
+--order by last_batch desc;
+/*
+--A
+select sum(size_in_bytes)/1024/1024 as [Total cached]
+from sys.dm_exec_cached_plans;
+go
+--Total_MB
+--84032
+--B
+select sum(size_in_bytes)/1024/1024 as [Total cached Adhoc]
+from sys.dm_exec_cached_plans
+where objtype = 'Adhoc'
+or objtype = 'Prepared';
+go
+*/
+--Instance Start Time
+SELECT login_time
+FROM sys.dm_exec_sessions
+WHERE session_id = 1
+-- Hardware Information for SQL Server 2005  (Query 5) (Hardware Info)
+-- (Cannot distinguish between HT and multi-core)
+SELECT cpu_count AS [Logical CPU Count], hyperthread_ratio AS [Hyperthread Ratio],
+cpu_count/hyperthread_ratio AS [Physical CPU Count], 
+physical_memory_in_bytes/1048576 AS [Physical Memory (MB)]
+FROM sys.dm_os_sys_info WITH (NOLOCK) OPTION (RECOMPILE);
+
+-- Get processor description from Windows Registry  (Query 7) (Processor Description)
+EXEC xp_instance_regread N'HKEY_LOCAL_MACHINE', N'HARDWARE\DESCRIPTION\System\CentralProcessor\0', N'ProcessorNameString';
+DECLARE @PerfCounters TABLE
+   (
+  [Counter] NVARCHAR(770) ,
+  [CounterType] INT ,
+  [FirstValue] DECIMAL(38, 2) ,
+  [FirstDateTime] DATETIME ,
+  [SecondValue] DECIMAL(38, 2) ,
+  [SecondDateTime] DATETIME ,
+  [ValueDiff] AS ( [SecondValue] - [FirstValue] ) ,
+  [TimeDiff] AS ( DATEDIFF(SS, FirstDateTime, SecondDateTime) ) ,
+  [CounterValue] DECIMAL(38, 2)
+  );
+  INSERT  INTO @PerfCounters
+   ( [Counter] ,
+   [CounterType] ,
+   [FirstValue] ,
+   [FirstDateTime]
+   )
+   SELECT  RTRIM([object_name]) + N':' + RTRIM([counter_name]) + N':'
+                + RTRIM([instance_name]) ,
+                [cntr_type] ,
+                [cntr_value] ,
+                GETDATE()
+   FROM    sys.dm_os_performance_counters
+   WHERE   [counter_name] IN ( N'Page life expectancy', 
+                                N'Lazy writes/sec',
+                                N'Page reads/sec', 
+                                N'Page writes/sec',
+                                N'Free Pages', 
+                                N'Free list stalls/sec',
+                                N'User Connections', 
+                                N'Lock Waits/sec',
+                                N'Number of Deadlocks/sec',
+                                N'Transactions/sec',
+                                N'Forwarded Records/sec',
+                                N'Index Searches/sec', 
+                                N'Full Scans/sec',
+                                N'Batch Requests/sec',
+                                N'SQL Compilations/sec',
+                                N'SQL Re-Compilations/sec',
+                                N'Total Server Memory (KB)',
+                                N'Target Server Memory (KB)',
+                                N'Latch Waits/sec',
+                                N'Network IO waits',
+                                N'Receive I/O bytes/sec',
+                                N'Send I/O bytes/sec' )
+   ORDER BY [object_name] + N':' + [counter_name] + N':'
+     + [instance_name];
+  WAITFOR DELAY '00:00:16';
+  UPDATE  @PerfCounters
+  SET     [SecondValue] = [cntr_value] ,
+        [SecondDateTime] = GETDATE()
+  FROM    sys.dm_os_performance_counters
+  WHERE   [Counter] = RTRIM([object_name]) + N':' + RTRIM([counter_name])
+                                                                  + N':'
+   + RTRIM([instance_name])
+   AND [counter_name] IN ( N'Page life expectancy', 
+                                N'Lazy writes/sec',
+                                N'Page reads/sec', 
+                                N'Page writes/sec',
+                                N'Free Pages', 
+                                N'Free list stalls/sec',
+                                N'User Connections', 
+                                N'Lock Waits/sec',
+                                N'Number of Deadlocks/sec',
+                                N'Transactions/sec',
+                                N'Forwarded Records/sec',
+                                N'Index Searches/sec', 
+                                N'Full Scans/sec',
+                                N'Batch Requests/sec',
+                                N'SQL Compilations/sec',
+                                N'SQL Re-Compilations/sec',
+                                N'Total Server Memory (KB)',
+                                N'Target Server Memory (KB)',
+                                N'Latch Waits/sec',
+                                N'Network IO waits',
+                                N'Receive I/O bytes/sec',
+                                N'Send I/O bytes/sec' );
+  UPDATE  @PerfCounters
+  SET     [CounterValue] = [ValueDiff] / [TimeDiff]
+  WHERE   [CounterType] = 272696576;
+  UPDATE  @PerfCounters
+  SET     [CounterValue] = [SecondValue]
+  WHERE   [CounterType] <> 272696576;
+   SELECT  [Counter] ,
+                [CounterValue] ,
+                [SecondDateTime]
+   FROM    @PerfCounters
+   where Counter Like '%SQLServer:Buffer Manager:%';
+                                                                                                             
+--Lazy writes/sec          6120281
+--Page reads/sec           1011878598
+--Page writes/sec          93473138
+--Page life expectancy     2
+
+--2/10/2014
+--counter_name	cntr_value
+--Lazy writes/sec            8753344
+--Page reads/sec             1285696272
+--Page writes/sec            140487245
+--Page life expectancy       371
+							--8949358
+							--1418950869
+							--144005855
+							--550
+							
+--2/27/2014
+--Lazy writes/sec     1910145
+--Page reads/sec      460816051
+--Page writes/sec     29069014
+--Page life expectancy   23
+--Lazy Writes/sec –-
+--How many pages are written to disk outside of a checkpoint due to memory pressure.
+--Average Lazy writes should be under 20
+
+--Get Buffer Cache Hit Ratio
+SELECT (a.cntr_value * 1.0 / b.cntr_value) * 100.0 as BufferCacheHitRatio
+FROM sys.dm_os_performance_counters  a
+JOIN  (SELECT cntr_value,OBJECT_NAME 
+    FROM sys.dm_os_performance_counters  
+    WHERE counter_name = 'Buffer cache hit ratio base'
+        AND OBJECT_NAME = 'SQLServer:Buffer Manager') b ON  a.OBJECT_NAME = b.OBJECT_NAME
+WHERE a.counter_name = 'Buffer cache hit ratio'
+AND a.OBJECT_NAME = 'SQLServer:Buffer Manager'
+
+-- Memory Grants Pending value for current instance (Query 23) (Memory Grants Pending)
+SELECT @@SERVERNAME AS [Server Name], [object_name], cntr_value AS [Memory Grants Pending]                                                                                                       
+FROM sys.dm_os_performance_counters WITH (NOLOCK)
+WHERE [object_name] LIKE N'%Memory Manager%' -- Handles named instances
+AND counter_name = N'Memory Grants Pending' OPTION (RECOMPILE);
+
+-- Memory Grants Pending above zero for a sustained period is a very strong indicator of memory pressure
+
+
+--Buffer Pool Size
+select *, cntr_value * 8/1024 as [Buffer Cache in MB]
+FROM sys.dm_os_performance_counters
+where counter_name in ('Total pages', 'Target pages')
+and object_name = 'SQLServer:Buffer Manager'
+go
+--Virtual Memory Reserved and Committed 
+SELECT sum(virtual_memory_reserved_kb)/1024 as vmrs_MB, sum(virtual_memory_committed_kb)/1024 as vmcm_MB
+FROM sys.dm_os_memory_clerks WITH (NOLOCK)
+--15520
+--283480
+/*select * FROM sys.dm_os_performance_counters WITH (NOLOCK)
+order by cntr_value desc
+
+SELECT sum(virtual_memory_reserved_kb)/1024 as vmrs_MB, sum(virtual_memory_committed_MB)/1024 as vmcm_mb
+FROM sys.dm_os_memory_clerks WITH (NOLOCK)
+order by virtual_memory_committed_kb desc
+
+--DBCC FREESYSTEMCACHE ('SQL Plans'); 
+--dbcc freeproccache
+--dbcc freesystemcache('all')
+--dbcc freesessioncache
+
+CHECKPOINT; 
+GO 
+--DBCC DROPCLEANBUFFERS; 
+--GO
+
+Committed	22528
+Target	212700
+Hashed	15897
+Stolen Potential	297513
+External Reservation	0
+Min Free	232
+Visible	212700
+Available Paging File	755320
+
+buffer dist
+Stolen	1524
+Free	669
+Cached	4438
+Database (clean)	13308
+Database (dirty)	2589
+I/O	0
+Latched	0
+
+*/
+
+ 
+--sp_change_users_login @Action='Report';
+--GO
+
+--274720
+--288247
+
+--280651
+--280523
+
