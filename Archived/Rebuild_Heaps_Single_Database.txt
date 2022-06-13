@@ -1,0 +1,37 @@
+----------------------------------
+--Tim Collins
+--Rebuild all Heaps in a database
+--04/19/2017
+-----------------------------------
+--select @@SERVERNAME
+SELECT object_name(sys.tables.object_id) as tableName
+into #tableNames
+ FROM sys.indexes
+INNER JOIN sys.tables
+ON sys.indexes.object_ID=sys.tables.OBJECT_ID
+WHERE sys.indexes.type=0
+order by tablename
+-------------------------------------------------
+declare @db varchar(255)
+declare @sql varchar(1000)
+
+while (select count(*) from #tableNames) > 1
+begin
+	select top 1 @db =  tableName
+	from #tableNames
+	
+	print @db
+	
+	set @sql = 'alter table ' + @db + ' rebuild'
+	print @sql
+	exec(@sql)
+	
+	delete
+	from #tableNames
+	where tableName = @db
+	
+end
+
+drop table #tableNames
+
+--END SCRIPT

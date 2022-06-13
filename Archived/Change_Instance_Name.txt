@@ -1,0 +1,12 @@
+--Change Instance Name
+--Named Instance
+
+sp_helpserver
+select @@servername
+
+
+sp_dropserver 'HREWWDEVDB1231\CDB'
+go
+
+sp_addserver 'W2K12SQL2014\W2K12SQL2014','local'
+go

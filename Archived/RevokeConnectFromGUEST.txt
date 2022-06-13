@@ -1,0 +1,24 @@
+---------------------------------------------
+--Revoke Connect from Guest in all Databases
+--Except Tempdb and Master---
+--5-19-2017
+--Tim Collins
+----------------------------------------------
+--GRANT PERMISSIONS
+EXEC master..sp_MSForeachdb '
+USE [?]
+IF ''?'' <> ''master''  AND ''?'' <> ''tempdb''
+BEGIN
+Revoke Connect From guest
+END'
+
+--Check Access
+--Single Database:
+----------------
+--SELECT name, hasdbaccess FROM sys.sysusers where name = 'guest'
+--
+--All Databases:
+---------------
+--sp_msforeachdb ' use [?] SELECT DB_Name(); select name, hasdbaccess FROM sys.sysusers where name = ''guest'''
+--
+--End Script

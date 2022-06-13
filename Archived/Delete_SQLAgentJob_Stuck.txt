@@ -1,0 +1,43 @@
+--Getting rid of a job that wont delete in SSMS
+select * from sysjobs -- to find the correct jobid
+--02
+ --08DEF34D-F1DF-4528-BEB9-DCE0F524A5D4
+--03
+select * from sysjobs
+ where job_id ='08DEF34D-F1DF-4528-BEB9-DCE0F524A5D4' -- update job_id with your job id number
+go
+ --
+--05
+delete from [dbo].[sysjobschedules] 
+where job_id ='08DEF34D-F1DF-4528-BEB9-DCE0F524A5D4' -- update job_id with your job id number
+go
+ 
+--07
+select * from [dbo].[sysmaintplan_subplans] 
+where job_id ='08DEF34D-F1DF-4528-BEB9-DCE0F524A5D4' -- update job_id with your job id number
+
+ 
+
+select * from dbo.sysmaintplan_log 
+where plan_id = '64F0C705-7372-4FCA-B51D-F475E11FA3FB' -- planid is the value from above sql
+go
+ 
+--11
+delete from [dbo].[sysmaintplan_log] 
+where plan_id = '64F0C705-7372-4FCA-B51D-F475E11FA3FB' -- planid is the value frm above sql
+go
+ 
+--13
+select * from [dbo].[sysmaintplan_subplans] 
+where job_id ='08DEF34D-F1DF-4528-BEB9-DCE0F524A5D4' -- update job_id with your job id number
+go
+ 
+--15
+delete from [dbo].[sysmaintplan_subplans] 
+where job_id ='08DEF34D-F1DF-4528-BEB9-DCE0F524A5D4' -- update job_id with your job id number
+go
+ 
+--17
+delete from sysjobs 
+where job_id ='08DEF34D-F1DF-4528-BEB9-DCE0F524A5D4' -- update job_id with your job id number
+go

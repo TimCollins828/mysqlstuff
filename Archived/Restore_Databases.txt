@@ -1,0 +1,152 @@
+create table #output ( cmdshell_out varchar(2000) )
+
+create table #restore_cmd (id_num int identity (1,1), restore_code varchar(2000),is_restored int)
+
+create table #logical_name_short ( dbnum int, logical_name varchar(128), phy_file_name varchar(128),
+									dbname varchar(128),backupfile varchar(128) )
+
+create table #logical_name ( logicalName varchar(128), PhysicalName varchar(300), Type char(1),
+								filegroupname varchar(128), size numeric(20,0), maxsize numeric (20,0), fileID bigint,
+								createLSN numeric(20,0), DropLSN numeric(25,0), UniqueID uniqueidentifier,
+								ReadonlyLSN numeric(25,0), ReadWriteLSN numeric(25,0), BackupSizeInBytes bigint,
+								SourceBlockSize int, FileGroupID int, LogGroupID uniqueidentifier, DifferentialBaseLSN numeric(25,0),
+								DifferentialBaseGUID uniqueidentifier,IsReadOnly bit, IsPresent bit, TDEThumbprint varbinary(32)
+								)
+
+declare @cmd varchar(1024)
+declare @cmd2 varchar (1024)
+declare @dbnum int
+declare @backupfile varchar(512)
+declare @restore_dir varchar(512)
+declare @to_del_dir varchar(512)
+declare @db_data_dir varchar(512)
+declare @db_log_dir varchar(512)
+declare @iterate_restore int
+declare @logical_file_name varchar(512)
+declare @physical_file_name varchar (512)
+declare @backuptype int
+declare @id_num int
+
+---------------------------------------------------------------------------------------
+--the 4 variables below need to be set according to the environment--------------------
+--
+set @db_data_dir = 'D:\Program Files\Microsoft SQL Server\MSSQL12.DEV1_BIZTALK\MSSQL\Data'
+set @db_log_dir  = 'D:\Program Files\Microsoft SQL Server\MSSQL12.DEV1_BIZTALK\MSSQL\Data'
+set @dbnum = 1
+set @restore_dir = 'D:\Bak'
+--
+----------------------------------------------------------------------------------------
+
+--Xp_cmdshell needs to be enable to run the command below.
+--The SQL service account needs full control over the restore directory.
+
+set @cmd2 = 'dir '+ @restore_dir + ' /b'
+
+insert into #output
+exec xp_cmdshell @cmd2
+
+delete from #output 
+where cmdshell_out is null OR cmdshell_out = 'restored'
+
+--start cursor to iterate through each backup.------------------------------------------
+--Get logical file names to restore databases.
+
+DECLARE Backups_cursor CURSOR FOR Select * FROM #output
+OPEN Backups_cursor
+FETCH NEXT FROM Backups_cursor INTO @Backupfile
+
+WHILE @@FETCH_STATUS = 0
+BEGIN 
+	set @cmd = 'restore filelistonly from disk = '''+@restore_dir+ '\'
+	set @cmd = @cmd + (@Backupfile) + ''''
+
+	insert into #logical_name
+	execute(@cmd)
+
+	insert into #logical_name_short
+	Select @dbnum as dbnum, logicalName, right(physicalname, charindex('\',reverse(physicalname),0)-1),
+			left(@backupfile,CHARINDEX('_backup',@backupfile,1)-1) as dbname,@backupfile
+	From #logical_name
+	
+	set @dbnum = @dbnum + 1
+	delete from #logical_name
+	
+	FETCH NEXT FROM Backups_cursor INTO @BackupFile
+END
+CLOSE Backups_cursor
+DEALLOCATE Backups_cursor
+
+set @iterate_restore = 1
+
+WHILE @iterate_restore <= (SELECT MAX(dbnum) FROM #logical_name_short)
+BEGIN
+	  set @cmd = 'restore database '+(SELECT TOP 1 dbname FROM #logical_name_short WHERE dbnum = @iterate_restore) +
+				 ' FROM DISK = '''+@restore_dir+'\'+ (SELECT TOP 1 backupfile FROM #logical_name_short WHERE dbnum = @iterate_restore) +'''
+				  with '
+	  	
+	  	DECLARE restore_cursor CURSOR FOR Select Logical_name, phy_file_name FROM #logical_name_short WHERE dbnum = @iterate_restore
+	    	OPEN restore_cursor
+		FETCH NEXT FROM restore_cursor INTO @logical_file_name, @physical_file_name
+		
+		WHILE @@FETCH_STATUS = 0
+		BEGIN 
+		
+				IF (@physical_file_name like '%.ldf') 
+					BEGIN
+						SET @cmd2 = 'MOVE '''+@logical_file_name+''' to '''+@db_log_dir +'\'+ @physical_file_name+''''
+					END
+				ELSE
+					BEGIN
+						SET @cmd2 = 'MOVE '''+@logical_file_name+''' to '''+@db_data_dir +'\'+ @physical_file_name+''''
+					END
+				
+				SET @cmd = @cmd + @cmd2 + ', '
+				
+				FETCH NEXT FROM restore_cursor INTO @logical_file_name, @physical_file_name
+		END
+		CLOSE restore_cursor
+		DEALLOCATE restore_cursor
+		
+		SET @cmd = Left(@cmd,len(@cmd)-1)
+		insert into #restore_cmd (restore_code) Select @cmd
+		
+		SET @iterate_restore = @iterate_restore + 1
+END
+
+---------------------------------------------------------------------------------------------------------------------				  
+--restore dbs from control table
+-- 0 = not restored
+-- 1 = in progress
+-- 2 = restored
+
+set @id_num = 1
+				  
+UPDATE #restore_cmd
+SET is_restored = 0
+
+WHILE @id_num <= (select MAX(id_num) From #restore_cmd)
+BEGIN
+
+	select TOP 1 @cmd = restore_code, @id_num = id_num 
+	from #restore_cmd 
+	where is_restored = 0 
+	order by id_num 
+
+	Update #restore_cmd
+	set is_restored = 1
+	where id_num = @id_num
+
+	Exec (@cmd)
+	--print @cmd
+	
+	update #restore_cmd
+	set is_restored = 2
+	where id_num = @id_num
+	
+	set @id_num = @id_num + 1
+END
+
+drop table #logical_name_short 
+drop table #logical_name
+drop table #output
+drop table #restore_cmd

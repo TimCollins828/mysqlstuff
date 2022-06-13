@@ -1,0 +1,58 @@
+---------------------------------
+---------------------------------
+--Tim Collins
+--SQL Server eOPFUSER User
+--DB_datareader TO EAPS
+--CREATING THE ROLE ROLE_EOPFUSER_PRD IN EAPS
+--PRD
+----------------------------------
+----------------------------------
+--//[]//---
+--HREEWPRDDB1218\PRD
+--------------------------------------------------
+--Create Login IN SQL SERVER
+-------------------------------------------------
+USE [master]
+
+GO
+
+if not exists(select * from sys.server_principals where name = 'EOPFUSER')
+Begin
+CREATE LOGIN [EOPFUSER] WITH PASSWORD=N'xxx', DEFAULT_DATABASE=[master], CHECK_EXPIRATION=ON, CHECK_POLICY=ON
+End
+
+
+--------------------------------------------------
+--CREATE USER IN THE DATABASE EAPS & db_datareader
+--------------------------------------------------
+
+USE [EAPS]
+go
+
+If exists(select * from sys.database_principals where name ='EOPFUSER')
+BEGIN
+DROP USER [EOPFUSER] 
+END
+
+CREATE USER [EOPFUSER] FOR LOGIN [EOPFUSER] WITH DEFAULT_SCHEMA=[dbo]  
+Grant CONNECT To [EOPFUSER]
+EXEC sp_addrolemember [db_datareader],[EOPFUSER]
+
+---------------------------------------------
+--CREATING THE ROLE ROLE_EOPFUSER_PRD IN EAPS
+----------------------------------------------
+
+USE [EAPS]
+go
+
+if not exists (select 1 from sys.database_principals where name='ROLE_EOPFUSER_PRD' and Type = 'R')
+Begin
+CREATE ROLE [ROLE_EOPFUSER_PRD] AUTHORIZATION [dbo]
+end
+
+	Grant Connect TO [ROLE_EOPFUSER_PRD]
+	Grant Execute on OBJECT::ADMIN_getRoleListByApplicationIDUserName to [ROLE_EOPFUSER_PRD];
+
+ALTER ROLE [ROLE_EOPFUSER_PRD] ADD MEMBER [EOPFUSER]
+
+--------------------------------------------------------------------------------------

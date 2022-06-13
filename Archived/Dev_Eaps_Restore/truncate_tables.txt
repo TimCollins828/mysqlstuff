@@ -1,0 +1,51 @@
+select COUNT(*) AS BeforeTruncateCount from EAPS_AD_ROLES_PERMISSIONS
+Truncate Table EAPS_AD_ROLES_PERMISSIONS
+select COUNT(*) from EAPS_AD_ROLES_PERMISSIONS
+
+select COUNT(*) AS BeforeTruncateCount from EAPS_AD_USER_ROLES
+Truncate Table EAPS_AD_USER_ROLES
+select COUNT(*) from EAPS_AD_USER_ROLES
+
+select COUNT(*) AS BeforeTruncateCount from EAPS_AD_USER_PERMISSIONS
+Truncate Table EAPS_AD_USER_PERMISSIONS
+select COUNT(*) from EAPS_AD_USER_PERMISSIONS
+
+select COUNT(*) AS BeforeTruncateCount from EAPS_BATCH_SCHEDULE
+Truncate Table EAPS_BATCH_SCHEDULE
+select COUNT(*) from EAPS_BATCH_SCHEDULE
+
+select COUNT(*) AS BeforeTruncateCount from EAPS_Config
+Truncate Table EAPS_Config
+select COUNT(*) from EAPS_Config
+
+select COUNT(*) AS BeforeTruncateCount from EAPS_REPORT_METADATA
+Truncate Table EAPS_REPORT_METADATA
+select COUNT(*) from EAPS_REPORT_METADATA
+
+select COUNT(*) AS BeforeTruncateCount from HelpFiles
+Truncate Table HelpFiles
+select COUNT(*) from HelpFiles
+
+select COUNT(*) AS BeforeTruncateCount from STD_APPLICATION
+Truncate Table STD_APPLICATION
+select COUNT(*) from STD_APPLICATION
+
+select COUNT(*) AS BeforeTruncateCount from STD_EMAIL_TXT
+Truncate Table STD_EMAIL_TXT
+select COUNT(*) from STD_EMAIL_TXT
+
+select COUNT(*) AS BeforeTruncateCount from STD_PERMISSION
+Truncate Table STD_PERMISSION
+select COUNT(*) from STD_PERMISSION--fk
+
+select COUNT(*) AS BeforeTruncateCount from STD_ROLE
+Truncate Table STD_ROLE
+select COUNT(*) from STD_ROLE--fk
+
+select COUNT(*) AS BeforeTruncateCount from STD_SITE_MAP
+Truncate Table STD_SITE_MAP
+select COUNT(*) from STD_SITE_MAP
+
+select COUNT(*) AS BeforeTruncateCount from TM_FORMS_METADATA
+Truncate Table TM_FORMS_METADATA
+select COUNT(*) from TM_FORMS_METADATA

@@ -1,0 +1,13 @@
+----------------------------------------
+-- Get percent Read/Write from db file
+----------------------------------------
+select vfs.[file_id], mf.name,
+CEILING(num_of_bytes_read*1.0 / (num_of_bytes_read*1.0 + num_of_bytes_written*1.0) * 100) AS pctRead,--AS pctREAD
+CEILING(num_of_bytes_written*1.0 / (num_of_bytes_read*1.0 + num_of_bytes_written*1.0) * 100) AS pctWrite--AS pctWrite
+, mf.physical_name
+FROM
+    sys.dm_io_virtual_file_stats (NULL,NULL) AS [vfs]
+JOIN sys.master_files AS [mf]
+    ON [vfs].[database_id] = [mf].[database_id]
+    AND [vfs].[file_id] = [mf].[file_id]
+WHERE [vfs].[file_id] = 1 -- 2 for log files

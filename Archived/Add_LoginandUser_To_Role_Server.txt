@@ -1,0 +1,26 @@
+--select @@servername
+-- ADD USERS
+ IF NOT EXISTS (SELECT loginname FROM master.dbo.syslogins WHERE name = N'WASHDC\CaoTV')
+ Begin
+CREATE login [WASHDC\CaoTV] From Windows;
+End
+go
+-- add the user to each database 
+EXECUTE master.sys.sp_MSforeachdb 'USE [?]; IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = N''WASHDC\CaoTV'')
+BEGIN
+CREATE USER [WASHDC\CaoTV] FOR LOGIN [WASHDC\CaoTV] 
+PRINT ''User Created in '' + DB_NAME()
+END
+ELSE
+PRINT ''User Already Existed in '' + DB_NAME() '
+go
+
+-- add the user to each database db_datareader role
+EXECUTE master.sys.sp_MSforeachdb 'USE [?]; IF EXISTS (SELECT * FROM sys.database_principals WHERE name = N''WASHDC\CaoTV'')
+BEGIN
+exec sp_addrolemember ''db_datareader'',''WASHDC\CaoTV'' 
+PRINT ''User added to role in '' + DB_NAME()
+END
+ELSE
+PRINT ''User does not exist in '' + DB_NAME() '
+go

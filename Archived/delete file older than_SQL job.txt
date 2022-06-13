@@ -1,0 +1,1 @@
+FORFILES /P F:\MSSQLBAK\53\Archicves /D -4 /C "cmd /c del @file"

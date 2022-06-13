@@ -1,0 +1,40 @@
+Memory DMV's (2008)
+
+sys.dm_os_waiting_tasks
+sys.dm_exec_query_memory_grants
+
+
+--use plan handle
+select query_plan
+from sys.dm_exec_query_plan
+( insert plan handle)
+GO
+
+--use sql handle
+select text from sys.dm_exec_sql_text
+(insert sql handle)
+GO
+
+--MSDN Article C:\Users\timothy.collins\Desktop\General\TShootPerfProbs2008
+
+•	sys.dm_os_memory_brokers 
+provides information about memory allocations using the internal SQL Server memory manager. 
+The information provided can be useful in determining very large memory consumers. 
+
+•	sys.dm_os_memory_nodes and sys.dm_os_memory_node_access_stats 
+provide information about physical non-uniform memory access (NUMA) memory nodes and node access statistics grouped by the type of the page.
+ (sys.dm_os_memory_node_access_stats is populated under dynamic trace flag 842 due to its performance impact.)
+
+•	sys.dm_os_nodes 
+provides information about CPU node configuration for SQL Server. This DMV also reflects software NUMA (soft-NUMA) configuration.
+
+•	sys.dm_os_process_memory 
+provides overview information about SQL Server memory usage.
+
+•	sys.dm_os_sys_memory (gives good info on system_memory_state_desc column)
+provides overview information about the system memory usage.
+
+•	sys.dm_resource_governor_configuration, sys.dm_resource_governor_resource_pools, and sys.dm_resource_governor_workload_groups 
+provide information about the state of the Resource Governor feature of SQL Server 2008. 
+Some of the configuration parameters of Resource Governor affect how SQL Server allocates memory; 
+you should check these parameters during memory troubleshooting.

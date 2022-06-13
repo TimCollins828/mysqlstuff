@@ -1,0 +1,128 @@
+USE [msdb]
+GO
+
+/****** Object:  Alert [Error 17 Alert]    Script Date: 4/25/2018 11:18:06 AM ******/
+EXEC msdb.dbo.sp_add_alert @name=N'Error 17 Alert', 
+		@message_id=0, 
+		@severity=17, 
+		@enabled=1, 
+		@delay_between_responses=3600, 
+		@include_event_description_in=1, 
+		@category_name=N'[Uncategorized]', 
+		@job_id=N'00000000-0000-0000-0000-000000000000'
+GO
+EXEC msdb.dbo.sp_add_notification @alert_name=N'Error 17 Alert', @operator_name=N'OAB', @notification_method = 1
+
+GO
+
+/****** Object:  Alert [Error 18 Alert]    Script Date: 4/25/2018 11:18:12 AM ******/
+EXEC msdb.dbo.sp_add_alert @name=N'Error 18 Alert', 
+		@message_id=0, 
+		@severity=18, 
+		@enabled=1, 
+		@delay_between_responses=3600, 
+		@include_event_description_in=1, 
+		@category_name=N'[Uncategorized]', 
+		@job_id=N'00000000-0000-0000-0000-000000000000'
+GO
+EXEC msdb.dbo.sp_add_notification @alert_name=N'Error 18 Alert', @operator_name=N'OAB', @notification_method = 1
+
+GO
+
+/****** Object:  Alert [Error 19 Alert]    Script Date: 4/25/2018 11:18:21 AM ******/
+EXEC msdb.dbo.sp_add_alert @name=N'Error 19 Alert', 
+		@message_id=0, 
+		@severity=19, 
+		@enabled=1, 
+		@delay_between_responses=3600, 
+		@include_event_description_in=1, 
+		@category_name=N'[Uncategorized]', 
+		@job_id=N'00000000-0000-0000-0000-000000000000'
+GO
+EXEC msdb.dbo.sp_add_notification @alert_name=N'Error 19 Alert', @operator_name=N'OAB', @notification_method = 1
+
+GO
+
+/****** Object:  Alert [Error 20 Alert]    Script Date: 4/25/2018 11:18:31 AM ******/
+EXEC msdb.dbo.sp_add_alert @name=N'Error 20 Alert', 
+		@message_id=0, 
+		@severity=20, 
+		@enabled=1, 
+		@delay_between_responses=3600, 
+		@include_event_description_in=1, 
+		@category_name=N'[Uncategorized]', 
+		@job_id=N'00000000-0000-0000-0000-000000000000'
+GO
+EXEC msdb.dbo.sp_add_notification @alert_name=N'Error 20 Alert', @operator_name=N'OAB', @notification_method = 1
+
+GO
+
+/****** Object:  Alert [Error 21 Alert]    Script Date: 4/25/2018 11:18:40 AM ******/
+EXEC msdb.dbo.sp_add_alert @name=N'Error 21 Alert', 
+		@message_id=0, 
+		@severity=21, 
+		@enabled=1, 
+		@delay_between_responses=3600, 
+		@include_event_description_in=1, 
+		@category_name=N'[Uncategorized]', 
+		@job_id=N'00000000-0000-0000-0000-000000000000'
+GO
+EXEC msdb.dbo.sp_add_notification @alert_name=N'Error 21 Alert', @operator_name=N'OAB', @notification_method = 1
+
+GO
+
+/****** Object:  Alert [Error 22 Alert]    Script Date: 4/25/2018 11:18:52 AM ******/
+EXEC msdb.dbo.sp_add_alert @name=N'Error 22 Alert', 
+		@message_id=0, 
+		@severity=22, 
+		@enabled=1, 
+		@delay_between_responses=3600, 
+		@include_event_description_in=1, 
+		@category_name=N'[Uncategorized]', 
+		@job_id=N'00000000-0000-0000-0000-000000000000'
+GO
+EXEC msdb.dbo.sp_add_notification @alert_name=N'Error 22 Alert', @operator_name=N'OAB', @notification_method = 1
+
+GO
+
+/****** Object:  Alert [Error 23 Alert]    Script Date: 4/25/2018 11:19:03 AM ******/
+EXEC msdb.dbo.sp_add_alert @name=N'Error 23 Alert', 
+		@message_id=0, 
+		@severity=23, 
+		@enabled=1, 
+		@delay_between_responses=3600, 
+		@include_event_description_in=1, 
+		@category_name=N'[Uncategorized]', 
+		@job_id=N'00000000-0000-0000-0000-000000000000'
+GO
+EXEC msdb.dbo.sp_add_notification @alert_name=N'Error 23 Alert', @operator_name=N'OAB', @notification_method = 1
+
+GO
+
+/****** Object:  Alert [Error 24 Alert]    Script Date: 4/25/2018 11:19:13 AM ******/
+EXEC msdb.dbo.sp_add_alert @name=N'Error 24 Alert', 
+		@message_id=0, 
+		@severity=24, 
+		@enabled=1, 
+		@delay_between_responses=3600, 
+		@include_event_description_in=1, 
+		@category_name=N'[Uncategorized]', 
+		@job_id=N'00000000-0000-0000-0000-000000000000'
+GO
+EXEC msdb.dbo.sp_add_notification @alert_name=N'Error 24 Alert', @operator_name=N'OAB', @notification_method = 1
+
+GO
+
+/****** Object:  Alert [Error 25 Alert]    Script Date: 4/25/2018 11:19:37 AM ******/
+EXEC msdb.dbo.sp_add_alert @name=N'Error 25 Alert', 
+		@message_id=0, 
+		@severity=25, 
+		@enabled=1, 
+		@delay_between_responses=3600, 
+		@include_event_description_in=1, 
+		@category_name=N'[Uncategorized]', 
+		@job_id=N'00000000-0000-0000-0000-000000000000'
+GO
+EXEC msdb.dbo.sp_add_notification @alert_name=N'Error 25 Alert', @operator_name=N'OAB', @notification_method = 1
+
+

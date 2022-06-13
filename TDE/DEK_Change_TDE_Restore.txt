@@ -1,0 +1,100 @@
+--Change Instance1 DEK to use different Cert
+--Backup Cert, Key, Database
+--Restore To Instance2
+--It is assumed there are two different databases on two seperate instances and, we want to restore each to the --other instance without using thier current certificate.
+
+------//Create Ecnrypted Databases//------------
+---------------------------------------
+------//Encrypt Database//------------
+-------------------------------------
+--
+--Is there a master key?
+use master
+go
+select * from sys.symmetric_keys
+select * FROM sys.dm_database_encryption_keys
+
+--Create master key and add the certificate to the destination server:
+-------------------------------------------
+--Create Master Key on Destination Server
+-------------------------------------------
+
+USE master
+GO
+CREATE MASTER KEY 
+ENCRYPTION BY PASSWORD = 'Krampu$Rule$12!@'
+GO
+------------------------------------------------------------------------------
+--Create cert and key on Destination from Source (the one we saved earlier)
+------------------------------------------------------------------------------
+Use master
+go
+CREATE CERTIFICATE DEV_DBA1_Cert
+FROM FILE = 'D:\TDE\HREWWDEVDB1929.washdc.state.sbu_appservices.cer'     
+WITH PRIVATE KEY (FILE = 'D:\TDE\HREWWDEVDB1929.washdc.state.sbu_appservices.pvk', 
+DECRYPTION BY PASSWORD = '')
+
+--User Database Encryption Key Creation
+USE PASSPS;
+GO
+CREATE DATABASE ENCRYPTION KEY
+WITH ALGORITHM = AES_256
+ENCRYPTION BY SERVER CERTIFICATE DEV_DBA1_Cert;
+GO
+
+--Encrypt Database
+ALTER DATABASE PASSPS
+SET ENCRYPTION ON;
+GO
+
+--Check Encryption State
+SELECT encryption_state
+FROM sys.dm_database_encryption_keys;
+GO
+select * from sys.databases
+--Find cert name and corresponding database
+select		db_name(dek.database_id) AS ProtectedDB
+		, dek.create_date
+		, c.name
+		, c.certificate_id
+		, c.pvt_key_encryption_type_desc
+                , c.pvt_key_last_backup_date
+		, c.issuer_name
+		, c.subject
+		, c.start_date
+		, c.expiry_date
+		from sys.dm_database_encryption_keys dek
+inner join master.sys.certificates c on dek.encryptor_thumbprint = c.thumbprint
+
+-----------------------------------------------------
+---//Create & Backup New Cert on Instnace1//-------
+------------------------------------------------
+--Create New Cert
+USE Master
+GO
+
+CREATE CERTIFICATE HREWWDEVDb1929_Dev_DBA1_TDE_Cert
+   WITH SUBJECT = 'NSDD38', 
+   EXPIRY_DATE = '20170315';
+GO
+--Backup New Cert
+Use Master
+go
+
+BACKUP CERTIFICATE NSDD38_DB_Cert TO FILE = 'd:\TDE\NSDD38_DB_Cert.cer'
+   WITH PRIVATE KEY ( FILE = 'd:\TDE\NSDD38_DB_Key.pvk' , 
+   ENCRYPTION BY PASSWORD = 'NewP@ssW0rd45$%' );
+GO
+----------------------------------------------------------------------
+--------------//Change DEK to Use New Cert--------------------
+----------------------------------------------------------
+
+--Change Server DEK
+USE [DB_NAME];
+GO
+
+ALTER DATABASE ENCRYPTION KEY
+REGENERATE WITH ALGORITHM = AES_256
+ENCRYptION BY Server CERTIFICATE [cert_name];
+GO
+

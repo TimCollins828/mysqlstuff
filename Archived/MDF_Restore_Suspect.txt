@@ -1,0 +1,61 @@
+---------------------------------
+--Try to attach database
+--If you dont have logs
+----------------------------------
+--WIth rebuild of log (if a good mdf)
+create database Eaps on 
+(FILENAME = N'I:\MSSQL10_50.UAT\MSSQL\DATA\Eaps')
+For attach_rebuild_log
+go
+
+--For Attach
+CREATE DATABASE Eaps ON
+(FILENAME = N'I:\MSSQL10_50.UAT\MSSQL\DATA\Eaps')
+FOR ATTACH
+GO
+
+-- Single File DB
+--Use if db was detached using sp_detach_db
+EXEC sp_attach_single_file_db @dbname='EAPS',
+@physname=N'I:\MSSQL10_50.UAT\MSSQL\DATA\Eaps'
+GO
+
+select * from sys.databases
+go
+
+--dbcc checkdb(contractordatabase);
+
+select @@servername
+
+--------------------------------------------------------------
+--Repair Process
+--------------------------------------------------------------
+--Do we have a primary data file?
+dbcc checkprimaryfile ('I:\MSSQL10_50.UAT\MSSQL\DATA\Eaps',0)
+go
+
+--Move any old data/log files from folders
+--Create a dummy database with the same MDF/LDF files/paths
+--Set The dummy database offline.
+--Replace the files and bring online
+--It should show as 'Suspect'
+
+--get status
+SELECT DATABASEPROPERTYEX (N'Eaps', N'STATUS');
+
+--repair a suspect database
+ALTER DATABASE [Eaps] SET EMERGENCY;
+GO
+ALTER DATABASE [Eaps] SET SINGLE_USER;
+GO
+DBCC CHECKDB (N'Eaps', REPAIR_ALLOW_DATA_LOSS) WITH NO_INFOMSGS, ALL_ERRORMSGS;
+GO
+
+--get status
+SELECT DATABASEPROPERTYEX (N'Eaps', N'STATUS');
+--dbcc checkdb(eaps)
+--Do a select to ensure data
+
+select [state_desc] from sys.databases where [name] = N'Eaps';
+go
+

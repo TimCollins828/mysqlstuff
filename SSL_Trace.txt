@@ -1,0 +1,8 @@
+--
+--
+--Start SSL trace: Open CMD as Admin
+--Run this:
+netsh winhttp set tracing trace-file-prefix="D:\Temp\dpws" level=verbose format=ansi state=enabled max-trace-file-size=1073741824
+
+--Then stop trace:
+netsh winhttp set tracing state=disabled

@@ -1,0 +1,25 @@
+$percentWarning = 15;
+$servers = Get-Content "$Env:c:\computers.txt";
+$datetime = Get-Date -Format "yyyyMMddHHmmss";
+
+Add-Content "$Env:USERPROFILE\server disks $datetime.txt" "server,deviceID,size,freespace,percentFree";
+
+foreach($server in $servers)
+{
+$disks = Get-WmiObject -ComputerName $server -Class Win32_LogicalDisk -Filter "DriveType = 3";
+
+foreach($disk in $disks)
+{
+$deviceID = $disk.DeviceID;
+[float]$size = $disk.Size;
+[float]$freespace = $disk.FreeSpace;
+
+$percentFree = [Math]::Round(($freespace / $size) * 100, 2);
+$sizeGB = [Math]::Round($size / 1073741824, 2);
+$freeSpaceGB = [Math]::Round($freespace / 1073741824, 2);
+
+
+Add-Content "c:\server_space.txt" "$server $deviceID $freeSpaceGB GB Available";
+}
+}
+

@@ -1,0 +1,20 @@
+-------------------------
+--Tim COllins
+--Run queries one at a time
+--This will disable referential integrity,  Truncate, reenable referential integrity.
+--09/25/2017
+------------------------
+-- First disable referential integrity
+EXEC sp_MSForEachTable 'ALTER TABLE ? NOCHECK CONSTRAINT ALL'
+GO
+-------------------------------
+------------------------------
+--Truncate all Tables in the Database
+EXEC sp_MSForEachTable 'TRUNCATE TABLE ?' 
+
+--Enable referential integrity again 
+EXEC sp_MSForEachTable 'ALTER TABLE ? CHECK CONSTRAINT ALL' 
+GO
+
+--OR,...drop all tables.
+EXEC sp_MSForEachTable 'DROP TABLE ?'

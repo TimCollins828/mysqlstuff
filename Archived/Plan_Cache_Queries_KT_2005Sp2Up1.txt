@@ -1,0 +1,159 @@
+-----------------------------------------
+--Plan Cach Queries from Kimberly Tripp
+--Tim COllins 
+--29 Oct 2014
+-----------------------------------------
+
+-- Change the server-wide setting for
+-- optimize for ad hoc workloads
+--
+--Check setting for Optimize for as hoc workloads
+-- review "value in use"
+SELECT [sc].* 
+FROM [sys].[configurations] AS [sc]
+WHERE [sc].[name] = N'optimize for ad hoc workloads';
+GO
+
+EXEC [sp_configure] N'optim', 1;
+-- Actual option: 'optimize for ad hoc workloads'
+-- NOTE: sp_configure only needs enough of the option
+-- to make it unique.
+GO
+
+RECONFIGURE;
+GO
+
+--CREATE PROCEDURE [dbo].[CheckForPlanCachePollution]
+--AS 
+--CHECK FOR PLAN CACHE POLLUTIPON
+SELECT [Cache Type] = [cp].[objtype] 
+	, [Total Plans] = COUNT_BIG (*) 
+	, [Total MBs]
+		= SUM (CAST ([cp].[size_in_bytes] 
+			AS DECIMAL (18, 2))) / 1024.0 / 1024.0 
+	, [Avg Use Count] 
+		= AVG ([cp].[usecounts]) 
+	, [Total MBs - USE Count 1]
+		= SUM (CAST ((CASE WHEN [cp].[usecounts] = 1 
+		THEN [cp].[size_in_bytes] ELSE 0 END) 
+			AS DECIMAL (18, 2))) / 1024.0 / 1024.0
+	, [Total Plans - USE Count 1]
+		= SUM (CASE WHEN [cp].[usecounts] = 1 
+				THEN 1 ELSE 0 END) 
+	, [Percent Wasted]
+		= (SUM (CAST ((CASE WHEN [cp].[usecounts] = 1 
+			THEN [cp].[size_in_bytes] ELSE 0 END) 
+			AS DECIMAL (18, 2))) 
+		 / SUM ([cp].[size_in_bytes])) * 100
+FROM [sys].[dm_exec_cached_plans] AS [cp]
+GROUP BY [cp].[objtype]
+ORDER BY [Total MBs - USE Count 1] DESC;
+GO
+
+-- Is your cache filled with "USE Count 1" plans?
+EXEC [CheckForPlanCachePollution];
+GO
+
+-- Here are your top 100 Adhoc statements
+-- by size in bytes
+SELECT TOP (100) [st].[text]
+	, [cp].[size_in_bytes]
+	, [cp].[plan_handle]
+FROM [sys].[dm_Exec_cached_plans] AS [cp]
+    CROSS APPLY [sys].[dm_exec_sql_text]
+		 ([cp].[plan_handle]) AS [st]
+WHERE [cp].[objtype] = N'Adhoc' 
+    AND [cp].[usecounts] = 1
+ORDER BY [cp].[size_in_bytes] DESC;
+GO
+
+
+--GET QUERY TIMES
+--CREATE PROCEDURE [dbo].[GetDemoQueryTimes]
+--AS 
+SELECT [qh].*, [qp].query_plan
+FROM (SELECT [cp].[objtype]
+		, [Query Hash] = [qs2].[query_hash] 
+		, [Query Plan Hash] = [qs2].[query_plan_hash] 
+		, [Total MB] = SUM ([cp].[size_in_bytes]) /
+			1024.00 / 1024.00
+		, [Avg CPU Time]
+			= SUM ([qs2].[total_worker_time]) /
+				SUM ([qs2].[execution_count])	
+		, [Execution Total]
+			= SUM ([qs2].[execution_count]) 
+		, [Total Cost]
+			= SUM ([qs2].[total_worker_time]) 
+		, [Example Statement Text] 
+			= MIN ([qs2].[statement_text]) 
+		, [plan_handle] = MIN ([qs2].[plan_handle])
+		, [statement_start_offset] =
+			MIN ([qs2].[statement_start_offset]) 
+	FROM (SELECT [qs].*,  
+			SUBSTRING ([st].[text], 
+				([qs].[statement_start_offset] / 2) + 1, 
+			((CASE [statement_end_offset] WHEN -1 THEN
+				DATALENGTH ([st].[text]) 
+				ELSE [qs].[statement_end_offset] END - 
+					[qs].[statement_start_offset]) / 2) + 1) 
+					AS [statement_text]
+			FROM [sys].[dm_exec_query_stats] AS [qs] 
+				CROSS APPLY [sys].[dm_exec_sql_text] 
+					([qs].[sql_handle]) AS [st]
+			WHERE [st].[text] LIKE '%member%'
+				AND [st].[text] NOT LIKE '%dm_exec%') AS [qs2]
+			INNER JOIN [sys].[dm_exec_cached_plans] AS [cp]
+				ON [qs2].[plan_handle] = [cp].[plan_handle]
+			GROUP BY [cp].[objtype], [qs2].[query_hash],
+				[qs2].[query_plan_hash]) AS [qh]
+CROSS APPLY [sys].[dm_exec_query_plan] 
+					([qh].[plan_handle]) AS [qp]
+-- For the demo, use the ORDER BY [Example Statement Text]
+--ORDER BY [Example Statement Text]
+-- For the real-world, use the following order by:
+ORDER BY [qh].[Total Cost] DESC
+;
+GO
+
+--How much is each query_hash using and how many plans?
+SELECT[qs].[query_hash]
+,[Distinct Plan Count]
+=COUNT(DISTINCT[qs].[query_plan_hash])
+,[Execution Total]
+=SUM ([qs].[execution_count])
+,[Total MB] = SUM(cast(cp.size_in_bytes as bigint))/1024.0 /1024.0
+FROM[sys].[dm_exec_query_stats]AS[qs]
+INNER JOIN[sys].[dm_exec_cached_plans]AS[cp]
+ON[qs].[plan_handle]=[cp].[plan_handle]
+GROUP BY[qs].[query_hash]
+--ORDER BY [Distinct Plan Count] desc
+ORDER BY[Execution Total]DESC;
+GO
+
+
+--sp_help '[sys].[dm_exec_cached_plans]'
+
+
+--Clearing *JUST* the 'SQL Plans' based on *just* the amount of Adhoc/Prepared single-use plans (2005/2008):
+DECLARE @MB decimal(19,3)
+        , @Count bigint
+        , @StrMB nvarchar(20)
+
+
+SELECT @MB = sum(cast((CASE WHEN usecounts = 1 AND objtype IN ('Adhoc', 'Prepared') THEN size_in_bytes ELSE 0 END) as decimal(12,2)))/1024/1024 
+        , @Count = sum(CASE WHEN usecounts = 1 AND objtype IN ('Adhoc', 'Prepared') THEN 1 ELSE 0 END)
+        , @StrMB = convert(nvarchar(20), @MB)
+FROM sys.dm_exec_cached_plans
+
+
+IF @MB > 100
+        BEGIN
+                DBCC FREESYSTEMCACHE('SQL Plans') 
+                RAISERROR ('%s MB was allocated to single-use plan cache. Single-use plans have been cleared.', 10, 1, @StrMB)
+        END
+ELSE
+        BEGIN
+                RAISERROR ('Only %s MB is allocated to single-use plan cache – no need to clear cache now.', 10, 1, @StrMB)
+                -- Note: this is only a warning message and not an actual error.
+        END
+go

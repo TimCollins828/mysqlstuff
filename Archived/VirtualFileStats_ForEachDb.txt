@@ -1,0 +1,5 @@
+--Virtual file stats for wach db
+--Will return full result set for each database but is good for copy and paste to .xlsx
+
+exec sp_msforeachdb 'SELECT * FROM sys.dm_io_virtual_file_stats(DB_ID("[?]"), 1);'
+Go

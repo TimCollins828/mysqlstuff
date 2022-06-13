@@ -1,0 +1,45 @@
+---------------------------------------
+---//Encrypt Database//---------------
+-------------------------------------
+-
+--Is there a master key?
+use master
+go
+select * from sys.symmetric_keys
+select * FROM sys.dm_database_encryption_keys
+
+--Create master key and add the certificate to the destination server:
+--Create Master Key on Destination Server
+
+USE master
+GO
+CREATE MASTER KEY 
+ENCRYPTION BY PASSWORD = 'Krampu$Rule$12!@'
+GO
+
+--Create cert and key on Destination from Source (the one we saved earlier)
+Use master
+go
+CREATE CERTIFICATE DEV_DBA1_Cert
+FROM FILE = 'D:\TDE\HREWWDEVDB1929.washdc.state.sbu_appservices.cer'     
+WITH PRIVATE KEY (FILE = 'D:\TDE\HREWWDEVDB1929.washdc.state.sbu_appservices.pvk', 
+DECRYPTION BY PASSWORD = '')
+
+--User Database Encryption Key Creation
+USE PASSPS;
+GO
+CREATE DATABASE ENCRYPTION KEY
+WITH ALGORITHM = AES_256
+ENCRYPTION BY SERVER CERTIFICATE DEV_DBA1_Cert;
+GO
+
+--Encrypt Database
+ALTER DATABASE PASSPS
+SET ENCRYPTION ON;
+GO
+
+--Check Encryption State
+SELECT encryption_state
+FROM sys.dm_database_encryption_keys;
+GO
+select * from sys.databases

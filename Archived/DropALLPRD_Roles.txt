@@ -1,0 +1,70 @@
+----------------------------------------------------------------------------------
+--Tim Collins
+--10/19/2017
+--Drop Database Roles that have "PRD" in thier Name
+--This iterates through ALL DATABASES except TEMPDB
+--Currently Set to PRINT ONLY. Look below to uncomment and Execute.
+-----------------------------------------------------------------------------------
+--- Create global temp table
+CREATE TABLE ##tmp9(Name varchar(50));
+-------------
+--declare @Dname varchar(50);
+declare @count1 int=1;
+Declare @Sql1 varchar(200);
+declare @@Dname varchar(50);
+select name into #tmp8 from sys.databases;
+
+--Loop through DB's
+While (@count1 >= 1)
+Begin
+Set @@Dname=(Select Top 1 Name from #tmp8)
+Set @Sql1='select Name from ['+@@Dname+'].sys.database_principals 
+where Type = ''R''
+and is_fixed_role = 0
+and name like ''%PRD%''
+and name not in(''public'')'
+Insert into ##tmp9 exec(@Sql1)
+Print(@Sql1);
+-----------------------------------------------------------
+-------------------------Begin for each DB-----------------
+-----------------------------------------------------------
+--Get roles into #tmp9
+--Select * from #tmp9
+--Loop through table and drop roles
+Declare @count int=1;
+Declare @Rname varchar(50);
+Declare @Sql varchar(75);
+Declare @M1 varchar(75);
+
+while(@count >= 1)
+Begin
+Set @Rname=(Select Top 1 Name from ##tmp9)
+Set @Sql='Use ['+@@Dname+'] Drop Role ['+ @Rname+'];'
+Print (@SQL)
+-----------------------------------------------------------------------------------------
+--Execute (@SQL) --Uncomment this to Execute and not PRINT.---------LOOK HERE
+-----------------------------------------------------------------------------------------
+
+--Set Message
+Set @M1='Role '+@Rname+' has been dropped from '+@@Dname;
+Print @m1
+
+--Remove the Name just used from tmp table for coutn
+delete from ##tmp9 where Name=@Rname;
+Set @count=(select count(*) from ##tmp9)
+END
+
+-----------------------------------------
+--------------End For Each DB------------
+-----------------------------------------
+delete from #tmp8 where Name=@@Dname;
+Set @count1=(select count(*) from #tmp8)
+End
+Drop table #tmp8;
+Drop table ##tmp9
+-------------------------------------------------------------
+--END Script
+-------------------------------------------------------------
+
+
+

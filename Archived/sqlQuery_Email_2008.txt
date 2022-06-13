@@ -1,0 +1,15 @@
+EXEC msdb.dbo.sp_send_dbmail
+
+    @profile_name = 'SQLDBEmail',
+
+    @recipients = 'kevin.smith@AtlanticPacificDB.com',
+
+    @query = 'SELECT Color, Items=COUNT(*) FROM    AdventureWorks2008.Production.Product
+
+                  GROUP BY Color ORDER BY Items DESC',
+
+    @subject = 'Color usage in bike and related products',
+
+    @attach_query_result_as_file = 1 ;
+
+

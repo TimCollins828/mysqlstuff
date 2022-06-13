@@ -1,0 +1,105 @@
+--BCP Image Data: http://technet.microsoft.com/en-us/library/aa173839(v=sql.80).aspx
+--Static SQL for Copy Db
+Use Master
+Go
+
+Backup Database Counterdrugcheckbook to Disk ='C:\Program Files\Microsoft SQL Server\MSSQL11.MSSQLSERVER\MSSQL\DATA\counterdrugcheckbook.dat'
+IF EXISTS(SELECT * FROM sysdatabases WHERE name = 'Counterdrugcheckbook3')
+Drop Database Counterdrugcheckbook3
+Go
+
+Restore database Counterdrugcheckbook3 from disk = 'C:\Program Files\Microsoft SQL Server\MSSQL11.MSSQLSERVER\MSSQL\DATA\counterdrugcheckbook.dat'
+With Move 'CounterdrugCheckbook' to 'C:\Program Files\Microsoft SQL Server\MSSQL11.MSSQLSERVER\MSSQL\DATA\counterdrugcheckbook3.mdf', 
+MOVE 'CounterdrugCheckbook_log' to 'C:\Program Files\Microsoft SQL Server\MSSQL11.MSSQLSERVER\MSSQL\DATA\counterdrugcheckbook3.ldf';
+Go
+
+--Dynamic SQL for Copy DB
+
+USE master
+GO
+
+-- the original database (use 'SET @DB = NULL' to disable backup)
+DECLARE @DB varchar(200)
+SET @DB = 'PcTopp'
+
+-- the backup filename
+DECLARE @BackupFile varchar(2000)
+SET @BackupFile = 'c:\pctopp\sqlserver\backup.dat'
+
+-- the new database name
+DECLARE @TestDB varchar(200)
+SET @TestDB = 'TestDB'
+
+-- the new database files without .mdf/.ldf
+DECLARE @RestoreFile varchar(2000)
+SET @RestoreFile = 'c:\pctopp\sqlserver\backup'
+
+
+-- ****************************************************************
+--                    no change below this line
+-- ****************************************************************
+
+
+DECLARE @query varchar(2000)
+
+DECLARE @DataFile varchar(2000)
+SET @DataFile = @RestoreFile + '.mdf'
+
+DECLARE @LogFile varchar(2000)
+SET @LogFile = @RestoreFile + '.ldf'
+
+IF @DB IS NOT NULL
+BEGIN
+    SET @query = 'BACKUP DATABASE ' + @DB + ' TO DISK = ' + QUOTENAME(@BackupFile, '''')
+    EXEC (@query)
+END
+
+-- RESTORE FILELISTONLY FROM DISK = 'C:\temp\backup.dat'
+-- RESTORE HEADERONLY FROM DISK = 'C:\temp\backup.dat'
+-- Create a copy of an existing SQL DB
+-- RESTORE LABELONLY FROM DISK = 'C:\temp\backup.dat'
+-- RESTORE VERIFYONLY FROM DISK = 'C:\temp\backup.dat'
+
+IF EXISTS(SELECT * FROM sysdatabases WHERE name = @TestDB)
+BEGIN
+    SET @query = 'DROP DATABASE ' + @TestDB
+    EXEC (@query)
+END
+
+RESTORE HEADERONLY FROM DISK = @BackupFile
+DECLARE @File int
+SET @File = @@ROWCOUNT
+
+DECLARE @Data varchar(500)
+DECLARE @Log varchar(500)
+
+SET @query = 'RESTORE FILELISTONLY FROM DISK = ' + QUOTENAME(@BackupFile , '''')
+
+CREATE TABLE #restoretemp
+(
+ LogicalName varchar(500),
+ PhysicalName varchar(500),
+ type varchar(10),
+ FilegroupName varchar(200),
+ size int,
+ maxsize bigint
+)
+INSERT #restoretemp EXEC (@query)
+
+SELECT @Data = LogicalName FROM #restoretemp WHERE type = 'D'
+SELECT @Log = LogicalName FROM #restoretemp WHERE type = 'L'
+
+PRINT @Data
+PRINT @Log
+
+TRUNCATE TABLE #restoretemp
+DROP TABLE #restoretemp
+
+IF @File > 0
+BEGIN
+    SET @query = 'RESTORE DATABASE ' + @TestDB + ' FROM DISK = ' + QUOTENAME(@BackupFile, '''') + 
+        ' WITH MOVE ' + QUOTENAME(@Data, '''') + ' TO ' + QUOTENAME(@DataFile, '''') + ', MOVE ' +
+        QUOTENAME(@Log, '''') + ' TO ' + QUOTENAME(@LogFile, '''') + ', FILE = ' + CONVERT(varchar, @File)
+    EXEC (@query)
+END
+GO

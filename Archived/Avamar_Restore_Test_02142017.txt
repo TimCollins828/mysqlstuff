@@ -1,0 +1,129 @@
+-----------------------------------
+--Tim Collins
+--Avamar Test Script
+--Used on HREWWDEVDB1929\DEV_DBA1
+-----------------------------------
+-------------------------------
+--Tim Collins
+--Avamar Test Script
+--02/14/2017
+------------------
+--Get current Rows
+use avamar_test
+go
+
+SELECT TOP 1000 [Name]
+      ,[DateTime]
+  FROM [Avamar_Test].[dbo].[Table_1]
+
+  --Backup Database
+  --Note that Avamar does this automatically but I am testing =)
+DECLARE @MyFileName varchar(1000)
+SELECT @MyFileName = (SELECT 'D:\Temp\Avamar_Test_' + convert(varchar(500),GetDate(),112) + '.bak') 
+BACKUP DATABASE [Avamar_Test] TO DISK=@MyFileName
+
+--Insert Control Row
+  Insert Into [dbo].[Table_1] ([Name]) values ('Conan')
+go
+
+--See Insert
+SELECT TOP 1000 [Name]
+      ,[DateTime]
+  FROM [Avamar_Test].[dbo].[Table_1]
+  ------------------------------------
+  ------------------------------------
+--Alter DB Single User (No Chnages)
+
+-- Note LSN
+Use avamar_test
+go
+--Note Current LSN 
+select * from fn_dblog(null, null)
+--Current LSN:00000317:000001bb:0025
+--------------
+
+--Perform a log backup
+DECLARE @MyFileName varchar(1000)
+SELECT @MyFileName = (SELECT 'D:\Temp\Avamar_Test1_' + convert(varchar(500),GetDate(),112) + '.trn') 
+BACKUP Log [Avamar_Test] TO DISK=@MyFileName
+
+--Insert Rows
+  Insert Into [dbo].[Table_1] ([Name]) values ('Jo')
+    Insert Into [dbo].[Table_1] ([Name]) values ('Jed')
+	  Insert Into [dbo].[Table_1] ([Name]) values ('SEEE ME')
+	    Insert Into [dbo].[Table_1] ([Name]) values ('Jet')
+		--
+	--More Rows
+	declare @id int 
+select @id = 1
+while @id >=1 and @id <= 1000
+begin
+    Insert Into [dbo].[Table_1] ([Name]) values('NoSee' + convert(varchar(5), @id))
+    select @id = @id + 1
+end
+		--See Insert
+SELECT TOP 1000 [Name]
+      ,[DateTime]
+  FROM [Avamar_Test].[dbo].[Table_1]
+  ----------------------------------------------
+  --DateTime of See Me: 2017-02-14 14:54:39.077
+  ----------------------------------------------
+
+--Note Current LSN 
+select * from fn_dblog(null, null)
+--Current LSN: 00000317:000001bb:0025
+
+--Perforn Log backup #2
+--Perform a log backup
+DECLARE @MyFileName1 varchar(1000)
+SELECT @MyFileName1 = (SELECT 'D:\Temp\Avamar_Test2_' + convert(varchar(500),GetDate(),112) + '.trn') 
+BACKUP Log [Avamar_Test] TO DISK=@MyFileName1
+
+--Insert Row #3
+  select * from [dbo].[Table_1]
+
+----
+declare @id int 
+select @id = 1
+while @id >=1 and @id <= 10000
+begin
+    Insert Into [dbo].[Table_1] ([Name]) values('NoSee' + convert(varchar(5), @id))
+    select @id = @id + 1
+end
+--results
+  select * from [dbo].[Table_1]
+
+--Note Current LSN 
+select * from fn_dblog(null, null)
+--Current LSN
+
+--Perform Log backup #3
+--Perform a log backup
+DECLARE @MyFileName2 varchar(1000)
+SELECT @MyFileName2 = (SELECT 'D:\Temp\Avamar_Test3_' + convert(varchar(500),GetDate(),112) + '.trn') 
+BACKUP Log [Avamar_Test] TO DISK=@MyFileName2
+
+--Note Current LSN 
+
+----------------------------------
+-----------------------------------
+select * from fn_dblog(null, null)
+
+--Cut Connections
+use master
+go
+
+alter database avamar_test
+set single_user;
+
+alter database avamar_test
+set multi_user;
+
+
+--Test restore with no recovery
+
+--Add log files UP TO DESIRED POINT-IN-TIME	
+
+--See "SEE ME" entry
+
+--Match LSN

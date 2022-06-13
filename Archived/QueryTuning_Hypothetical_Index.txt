@@ -1,0 +1,68 @@
+-----------------------------------
+--Tim Collins
+--Hypothetical Index Query Example
+--02-08-2017
+------------------------------------
+-- Find missing index warnings for cached plans in the current database
+-- Note: This query could take some time on a busy instance
+SELECT TOP(25) OBJECT_NAME(objectid) AS [ObjectName], 
+               query_plan, cp.objtype, cp.usecounts, cp.size_in_bytes
+FROM sys.dm_exec_cached_plans AS cp WITH (NOLOCK)
+CROSS APPLY sys.dm_exec_query_plan(cp.plan_handle) AS qp
+WHERE CAST(query_plan AS NVARCHAR(MAX)) LIKE N'%MissingIndex%'
+AND dbid = DB_ID()
+ORDER BY cp.usecounts DESC OPTION (RECOMPILE);
+----------------------------
+--Create Hypothetical Index
+-----------------------------
+USE [EAPS]
+GO
+CREATE NONCLUSTERED INDEX [IDX_TIM_TIM8]
+ON [dbo].[OBO_SANDBOX_ACCESS_HISTORY] ([AD_ID_TXT],[RESET_IND],[ACCESS_DT])
+INCLUDE ([OBO_SANDBOX_GUID])  WITH STATISTICS_ONLY = -1
+------------------
+--Get IDX Info
+------------------
+SELECT dbid = DB_ID(),
+       objectid = 
+object_id,
+       indid = index_id
+  FROM sys.indexes
+ WHERE 
+object_id = 
+OBJECT_ID('IDX_TIM_TIM8')
+   AND is_hypothetical = 1
+
+--------------------------------
+--Use IDX in Hypothetical query
+----------------------------------
+-------5	121819546	6
+-- Use typeId 0 to enable a specifc index on AutoPilot mode
+DBCC AUTOPILOT(0, 5, 121819546, 6) --Change to IDX info
+GO
+SET AUTOPILOT ON
+GO
+-------
+select 
+	distinct top 5 
+	SH.OBO_SANDBOX_GUID, 
+	S.OBO_SANDBOX_TEXT, 
+	S.POST_DESC, 
+	ST.STATUS_DISPLAY_TXT, 
+	S.[VERSION],
+	count(*) AS NUMBER_OF_ACCESS, 
+	max(access_dt) AS LAST_TIME_ACCESSED
+from dbo.OBO_SANDBOX_ACCESS_HISTORY AS SH
+	INNER JOIN dbo.OBO_A_SANDBOX AS S
+		ON SH.OBO_SANDBOX_GUID = S.OBO_SANDBOX_GUID 
+	INNER JOIN OBO_A_SANDBOX_STATUS AS ST
+		ON S.STATUS_KEY_NUM = ST.SANDBOX_STATUS_KEY_NUM
+WHERE S.DELETED_IND = 0 
+	AND SH.AD_ID_TXT = 'WASHDC\WoodCS' 
+	AND S.SANDBOX_TABLE_TYPE = 'Position'
+	AND SH.access_dt > dateadd(m, -1, getdate())
+	AND SH.RESET_IND = 0
+group by SH.OBO_SANDBOX_GUID, S.OBO_SANDBOX_TEXT, S.POST_DESC, ST.STATUS_DISPLAY_TXT, S.[VERSION]
+order by count(*) desc
+GO
+SET AUTOPILOT OFF

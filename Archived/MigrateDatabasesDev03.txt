@@ -1,0 +1,61 @@
+--Tim Collins
+--09September2013
+--This script will autoatically create a database and restore it
+--from a BAK file. It is assumed that database names are stored in a table
+--called "tempdb.dbo.Database_Names1". Files are written to 'G:\Data\'.
+--select @@servername
+declare @count1 int
+declare @query2 varchar(max)
+declare @query1 varchar(max)
+declare @dbname varchar(max)
+set @count1 = 1
+while @count1 >= 1
+begin
+set @dbname =(select top 1 name from tempdb.dbo.Database_Names1)
+set @query2 = ('CREATE Database ' + @dbname+
+' ON PRIMARY'+
+'( NAME = '+@dbname+'_dat,
+    FILENAME = '+ '''g:\data\'+@dbname+'.mdf'''+')'+
+'LOG ON
+( NAME = '+@dbname+'_log,'+
+    'FILENAME ='+ '''g:\data\'+@dbname+'.ldf'''+')')
+exec(@query2)
+
+set @query1=(
+'RESTORE DATABASE '+ @dbname+
+' FROM DISK =' +'''20130906_'+@dbname+'.bak'''+
+' with replace, recovery, 
+move '''+ @dbname+''' TO '+ '''G:\Data\'+@dbname+'.mdf'''+ ',
+move '''+@dbname+'_log'''+ ' TO'+ '''G:\Data\'+@dbname+'.ldf''')
+
+exec(@query1)
+delete from tempdb.[dbo].[Database_Names1] where name=@dbname
+set @count1 =(select count(*) from tempdb.[dbo].[Database_Names1])
+Print 'Done'
+End
+--End Automated Move
+
+--Check Database Names on Server
+--select name from sys.databases
+
+--Manual Move
+
+create database [FY15VoucherTools]
+ON PRIMARY
+( NAME = FY15VoucherTools_dat,
+    FILENAME = 'g:\data\FY15VoucherTools.mdf' )
+LOG ON
+( NAME = FY15VoucherTools_log,
+    FILENAME = 'g:\data\FY15VoucherTools.ldf' ) 
+    
+-- Manual Restore
+    
+    RESTORE DATABASE [FY15VoucherTools]
+FROM disk = '20130906_FY15VoucherTools.bak'
+with replace, recovery, 
+move 'Voucher2.0' TO 'G:\Data\FY15VoucherTools.mdf',
+move 'Voucher2.0_log' TO 'G:\Data\FY15VoucherTools.ldf'
+
+--Files needed for restore
+--restore filelistonly from disk= 'G:\bak\20130906_FY15VoucherTools.bak'
+-- drop database FY14VoucherTools

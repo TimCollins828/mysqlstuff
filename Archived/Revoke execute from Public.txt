@@ -1,0 +1,8 @@
+--revoke execute from Public
+
+Use master
+go
+
+Revoke Execute ON xp_regread TO public
+Revoke Execute ON xp_Instance_regread TO public
+go

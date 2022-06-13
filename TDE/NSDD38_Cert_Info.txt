@@ -1,0 +1,6 @@
+Note that the Cert was backed up as below.
+
+BACKUP CERTIFICATE NSDD38_DB_Cert TO FILE = 'd:\TDE\NSDD38_DB_Cert.cer'
+   WITH PRIVATE KEY ( FILE = 'd:\TDE\NSDD38_DB_Key.pvk' , 
+   ENCRYPTION BY PASSWORD = 'NewP@ssW0rd45$%' );
+GO

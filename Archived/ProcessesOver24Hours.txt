@@ -1,0 +1,12 @@
+-------------------------------------
+--Tim Collins
+--04/27/2018 
+--User Processes Over 24 hours
+-------------------------------------
+use Master
+go
+
+select Start_Time, session_id, [status], last_wait_type
+ FROM sys.dm_exec_requests
+ where start_time < (select getdate()-1)
+ and session_id > 50;

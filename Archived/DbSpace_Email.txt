@@ -1,0 +1,35 @@
+--This script checks for Database free space
+--If it is below 3GB, an email is sent out.
+--Tim Collins 2August2012
+
+use CJCCLoggingDb
+go
+declare @1 int
+declare @2 varchar(13)
+declare @3 varchar(100)
+set @3 = @1
+set @1 = (select size/128.0 - CAST(FILEPROPERTY(name,'SpaceUsed') AS INT)/128.0 AS FreeSpaceMB
+From sys.database_files
+where name = 'CJCCLoggingDb')
+begin
+if 
+ @1 > 10240
+ 
+ EXEC msdb.dbo.sp_send_dbmail
+
+    @profile_name = 'CJCCAdmin',
+
+    @recipients = 'timothy.collins@dc.gov',
+   
+    @body = 'This is notification that the 53 CjccLoggingDb has less than 3GB of space available. The actual size is below: ',
+    
+    @subject = '53 CJCCLoggingDb below 3GB Space Available',
+    
+    @query = 'use CJCCLoggingDb 
+    GO
+     SELECT DB_NAME() AS DbName, name AS FileName, size/128.0 AS CurrentSizeMB, size/128.0 - CAST(FILEPROPERTY(name, "SpaceUsed") AS INT)/128.0 AS FreeSpaceMB 
+FROM sys.database_files';
+   
+ELSE
+RETURN
+END

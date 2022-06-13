@@ -1,0 +1,30 @@
+TLS_RSA_WITH_3DES_EDE_CBC_SHA
+TLS_RSA_WITH_AES_128_CBC_SHA
+TLS_RSA_WITH_AES_128_CBC_SHA256
+TLS_RSA_WITH_AES_128_GCM_SHA256
+TLS_RSA_WITH_AES_256_CBC_SHA
+TLS_RSA_WITH_AES_256_CBC_SHA256
+TLS_RSA_WITH_AES_256_GCM_SHA384
+======
+From the Group Policy Management Console, go to: 
+Computer Configuration > Administrative Templates > Network > SSL Configuration Settings.
+
+Double-click SSL Cipher Suite Order, and then click the Enabled option.
+
+Right-click SSL Cipher Suites box and select Select all from the pop-up menu.
+
+Group Policy setting
+
+Right-click the selected text, and select copy from the pop-up menu.
+
+Paste the text into a text editor such as notepad.exe and update with the new cipher suite order list.
+
+ Note
+
+The TLS cipher suite order list must be in strict comma delimited format. Each cipher suite string will end with a comma (,) to the right side of it.
+
+Additionally, the list of cipher suites is limited to 1,023 characters.
+
+Replace the list in the SSL Cipher Suites with the updated ordered list.
+
+Click OK or Apply.

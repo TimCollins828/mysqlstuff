@@ -1,0 +1,60 @@
+------------------------------------------------------------
+--This script will encrypt all databases on the Instance 
+--with a cert and turn on encryption
+--Be Sure to change the Certificate name below
+------------------------------------------------------------
+--Tim Collins
+--12\23\2016
+------------------------------------------------------------
+declare @count1 int
+declare @backupPath varchar(100)
+declare @query1 varchar(max)
+declare @query2 varchar(max)
+declare @dbname varchar(max)
+
+set @backupPath = 'C:\Bak\'
+
+--Drop Temp Table if exists
+IF OBJECT_ID('tempdb..#Database_Names1') IS NOT NULL
+    DROP TABLE #Database_Names1
+
+-- Select user databases
+select [Name]
+into #Database_Names1
+from sys.sysdatabases
+where ([dbid] > 4)
+
+set @count1 = 1
+while @count1 >= 1
+
+begin
+set @dbname =(select top 1 [name] from #Database_Names1)
+
+--Be Sure to change the Certificate name below
+set @query1=(
+--User Database Encryption Key Creation
+'USE ' + @dbName + ';
+CREATE DATABASE ENCRYPTION KEY
+WITH ALGORITHM = AES_256
+--Change Cert Name Here
+ENCRYPTION BY SERVER CERTIFICATE [HREWWINFDB1001.washdc.state.sbu];'
+)
+--Encrypt Database
+set @query2=(
+'ALTER DATABASE ' + @dbName +
+' SET ENCRYPTION ON;'
+)
+--Print (@query1)
+Exec(@query1)
+--Print (@query2)
+Exec(@query2)
+
+delete from #Database_Names1 where name=@dbname
+
+set @count1 =(select count(*) from #Database_Names1)
+Print 'Done'
+End
+-----------------
+--End Script
+------------------
+

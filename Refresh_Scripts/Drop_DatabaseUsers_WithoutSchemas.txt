@@ -1,0 +1,26 @@
+------------------------------------------------------------------
+---//--Drop all users in a Database that do not have schema--//---
+-------------------------------------------------------------------
+
+declare @sql nvarchar(max)
+set @sql = ''
+
+SELECT @sql = @sql+
+'
+print ''Dropping '+name+'''
+DROP USER ['+ name+']'
+
+FROM
+       sys.database_principals dp
+WHERE type <> 'R'
+	AND NOT EXISTS 
+	(
+		SELECT 1
+		FROM sys.schemas s
+		WHERE s.principal_id = dp.principal_id
+	)
+	and Name not like '%Collins%'
+ORDER BY name
+
+--print (@sql)
+execute (@sql)

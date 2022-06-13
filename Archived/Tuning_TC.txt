@@ -1,0 +1,503 @@
+select * from msdb.dbo.sysjobs
+select * from sys.databases
+
+--database data files for all datbases
+sp_msforeachdb'use [?] select File_id =
+case
+ File_id	
+	When 1 then ''DATA_FILE''	
+	WHen 2 then ''LOG_FILE''
+	END,
+	LTRIM(RTRIM(NAME)) as NAME, PHYSICAL_NAME
+	from sys.database_files;'
+--
+select * from master.dbo.sysprocesses --where blocked != '0'
+--where hostname = 'NMILLER-W7P'
+order by waitresource desc;
+go
+--50 = LeaveLog 47= HRMS 18=Counterdrug 34=FTSMCS
+
+select count(*) as TotalPrcss, sum(CPU) as sumCPU,
+sum(physical_io) as Physical_IO
+from master.dbo.sysprocesses
+
+select distinct a.hostname, b.*
+from master.dbo.sysprocesses as a
+cross apply(select count(*) as SessionsCnt, sum(cpu)
+as cpu, sum(physical_io) as phys_io
+from master.dbo.sysprocesses as c
+where a.hostname = c.hostname) as b
+where a.hostname <> ''
+and a.hostname <> 'DEVELOP03'
+order by b.phys_io desc;
+go
+
+
+select count(*) from master.dbo.sysprocesses
+--dbcc traceoff(3226, -1)
+
+execute sp_lock
+--select * from sys.dm_os_sys_info
+select * from sys.dm_tran_locks
+exec sp_who2
+--select user_name(5)
+select @@servername 
+select * from sys.databases
+--select object_name(1131151075)
+
+sp_helpfile
+
+select * from sys.dm_exec_sql_text(0x030032008674C275217AA800FCA100000000000000000000)
+go
+--kill 68
+--dbcc inputbuffer(95)
+--(95)=spid
+--hotprocess 8828
+--waitresource 32:1:82829049
+--Pageiolatch_sh
+--spid 95 kpid 7032  
+--Suspended                                                          
+DBCC traceon(3604)
+DBCC page (2, 1, 0)      
+--Metadata: ObjectId = 1710629137  
+Select Object_name(99,2)
+--tbl_Leave  
+--
+--  server-scope view that shows information about all active user connections and internal tasks
+--  Use sys.dm_exec_sessions to first view the current system load and to identify a session of 
+--    interest, and then learn more information about that session by using other dynamic management views or dynamic management functions.
+--  The sys.dm_exec_connections, sys.dm_exec_sessions, and sys.dm_exec_requests dynamic management views map to the sys.sysprocesses system table
+Select Session_id, cpu_time, total_elapsed_time
+From sys.dm_exec_sessions
+Where session_id =57
+	--CXPACKET Means Paralellism is occurring
+	--sos_scheduler_yield represents threads that are voluntarily yielding process time
+	
+--Current Waits DMV
+Select * from SYS.DM_OS_WAITING_TASKS
+Order by 
+wait_duration_ms DESC
+--wait_type desc
+
+-- Waiting Stats
+Select wait_type, waiting_tasks_count, wait_time_ms, max_wait_time_ms, signal_wait_time_ms
+from sys.dm_os_wait_stats
+order by wait_time_ms desc
+go
+
+--Master.dbo.sysprocesses
+--Shows anything running for an hour or more and not in...
+select *, spid,[status],memusage, datediff(hh, last_batch, getdate())as Hours_Running
+from master.dbo.sysprocesses 
+where spid > 50
+--and nt_username='timothy.collins'
+and datediff(hh, last_batch, getdate())>=1
+and status not in ('background','sleeping')
+and cmd not in ('AWAITING COMMAND','MIRROR HANDLER','LAZY WRITER','CHECKPOINT SLEEP')
+
+
+--kill 53
+--Internal Memory Pressure:
+--This view shows where SQL memory is currently allocated
+select * from sys.dm_os_memory_clerks
+--DBCC MemoryStatus
+DBCC MEMORYSTATUS
+--"Buffer Counts" Section, Committed and Target Memory values should be same
+
+--Paralell Query Process Query:
+--CPU Pressure - Look for "SOS_Scheduler_Yield"
+Select * from sys.dm_os_wait_stats
+Order by wait_time_ms Desc
+--Returns information about all the waits encountered by threads that executed. 
+--You can use this aggregated view to diagnose performance issues with SQL Server and 
+--also with specific queries and batches. 
+-- sos_scheduler_yield represents threads that are voluntarily yielding process time (CPU Pressure)
+--//////////Filtered Version//////////--
+WITH Waits AS 
+ ( 
+ SELECT  
+   wait_type,  
+   wait_time_ms / 1000. AS wait_time_s, 
+   100. * wait_time_ms / SUM(wait_time_ms) OVER() AS pct, 
+   ROW_NUMBER() OVER(ORDER BY wait_time_ms DESC) AS rn 
+ FROM sys.dm_os_wait_stats 
+ WHERE wait_type  
+   NOT IN 
+     ('CLR_SEMAPHORE', 'LAZYWRITER_SLEEP', 'RESOURCE_QUEUE', 
+   'SLEEP_TASK', 'SLEEP_SYSTEMTASK', 'SQLTRACE_BUFFER_FLUSH', 'WAITFOR', 
+   'CLR_AUTO_EVENT', 'CLR_MANUAL_EVENT') 
+   ) -- filter out additional irrelevant waits 
+    
+SELECT W1.wait_type, 
+ CAST(W1.wait_time_s AS DECIMAL(12, 2)) AS wait_time_s, 
+ CAST(W1.pct AS DECIMAL(12, 2)) AS pct, 
+ CAST(SUM(W2.pct) AS DECIMAL(12, 2)) AS running_pct 
+FROM Waits AS W1 
+ INNER JOIN Waits AS W2 ON W2.rn <= W1.rn 
+GROUP BY W1.rn,  
+ W1.wait_type,  
+ W1.wait_time_s,  
+ W1.pct 
+HAVING SUM(W2.pct) - W1.pct < 95; -- percentage threshold;
+--////////End Filtered Version//////////--
+--//////////////////////////////////////--
+
+--This gives you the most expensive queries:
+SELECT TOP 30 SUBSTRING(qt.TEXT, (qs.statement_start_offset/2)+1,
+((CASE qs.statement_end_offset
+WHEN -1 THEN DATALENGTH(qt.TEXT)
+ELSE qs.statement_end_offset
+END - qs.statement_start_offset)/2)+1),
+qs.execution_count,
+qs.total_logical_reads, qs.last_logical_reads,
+qs.total_logical_writes, qs.last_logical_writes,
+qs.total_worker_time,
+qs.last_worker_time,
+qs.total_elapsed_time/1000000 total_elapsed_time_in_S,
+qs.last_elapsed_time/1000000 last_elapsed_time_in_S,
+qs.last_execution_time,
+qp.query_plan
+FROM sys.dm_exec_query_stats qs
+CROSS APPLY sys.dm_exec_sql_text(qs.sql_handle) qt
+CROSS APPLY sys.dm_exec_query_plan(qs.plan_handle) qp
+ORDER BY qs.total_logical_reads DESC -- logical reads
+-- ORDER BY qs.total_logical_writes DESC -- logical writes
+-- ORDER BY qs.total_worker_time DESC -- CPU time
+
+CPU Reference:
+http://www.mssqltips.com/sqlservertip/2454/how-to-find-out-how-much-cpu-a-sql-server-process-is-really-using/
+ 
+--Execute Requests:
+use master
+GO
+SELECT *, sqltext.TEXT,
+ req.session_id,
+ req.status,
+ req.command,
+ req.cpu_time,
+ req.total_elapsed_time
+ FROM sys.dm_exec_requests req
+ CROSS APPLY sys.dm_exec_sql_text(sql_handle) AS sqltext
+ --checkpoint
+ --Open Transactions
+select * from sys.dm_tran_active_transactions
+select * from sys.dm_tran_session_transactions 
+select * from sys.dm_tran_locks
+
+--DBCC Opentran('HRMS_Dev')
+
+--Connections
+select * from sys.dm_exec_connections
+
+--Find what database an Object is in
+create table #t (
+    DBName sysname not null
+)
+go
+exec sp_msforeachdb 'use [?]; if OBJECT_ID(''tbl_EmailQueue'') is not null insert into #t (DBName) select ''?'''
+go
+select * from #t
+go
+drop table #t
+
+--cached Execution Plans with Warnings	
+WITH XMLNAMESPACES 
+(DEFAULT 'http://schemas.microsoft.com/sqlserver/2004/07/showplan')  
+SELECT plan_handle, tp.query_plan.query('//Warnings') as Warning, query_plan  
+FROM (     
+SELECT DISTINCT plan_handle   
+FROM sys.dm_exec_cached_plans WITH(NOLOCK)   
+)AS qs  
+OUTER APPLY sys.dm_exec_query_plan(qs.plan_handle) tp      
+WHERE tp.query_plan.exist('//Warnings')=1 
+
+--TEMPDB USAGE BREAKOUT
+USE TEMPDB
+GO
+
+SELECT SUM([USER_OBJECT_RESERVED_PAGE_COUNT])
+	* 8 AS [USER_OBJECT_RESERVED_KB],
+	SUM([INTERNAL_OBJECT_RESERVED_PAGE_COUNT])
+	* 8 AS [INTERNAL_OBJECT_RESERVED_KB],
+	SUM([VERSION_STORE_RESERVED_PAGE_COUNT])
+	* 8 AS [VERSION_STORE_KB]
+FROM SYS.DM_DB_FILE_SPACE_USAGE;
+GO
+
+select * from sys.dm_tran_active_snapshot_database_transactions
+order by elapsed_time_seconds desc
+go
+
+select t.text, p.query_plan
+from sys.dm_exec_sessions as s
+left join sys.dm_exec_requests as r
+on s.session_id = r.session_id
+outer apply sys.dm_exec_sql_text(r.sql_handle) as t
+outer apply sys.dm_exec_query_plan(r.plan_handle) as p
+where s.session_id = 75;
+GO
+
+--STATISTICS INFO
+--dbcc show_statistics (tbl_controlnumber, _WA_Sys_00000004_2D27B809)
+--Get number of changes for statistical columns
+SELECT sch.name +
+',' + so.name, so.object_id, ss.name, ss.stats_id
+
+FROM sys.stats ss
+
+JOIN sys.objects so ON ss.object_id = so.object_id
+
+JOIN sys.schemas sch ON so.schema_id = sch.schema_id
+
+WHERE so.name =  N'tbl_controlnumber';
+
+--Take object_id and stats_id and plug them into the DMF:
+--SELECT * 
+--FROM sys.dm_db_stats_properties(757577737,4);
+
+--Wait Stats From Paul Randal
+ WITH [Waits] AS 
+(SELECT 
+[wait_type], 
+[wait_time_ms] / 1000.0 AS [WaitS], 
+([wait_time_ms] - [signal_wait_time_ms]) / 1000.0 AS [ResourceS], 
+[signal_wait_time_ms] / 1000.0 AS [SignalS], 
+[waiting_tasks_count] AS [WaitCount], 
+100.0 * [wait_time_ms] / SUM ([wait_time_ms]) OVER() AS [Percentage], 
+ROW_NUMBER() OVER(ORDER BY [wait_time_ms] DESC) AS [RowNum] 
+FROM sys.dm_os_wait_stats 
+ WHERE [wait_type] NOT IN ( 
+N'CLR_SEMAPHORE',    N'LAZYWRITER_SLEEP', 
+N'RESOURCE_QUEUE',   N'SQLTRACE_BUFFER_FLUSH', 
+N'SLEEP_TASK',       N'SLEEP_SYSTEMTASK', 
+N'WAITFOR',          N'HADR_FILESTREAM_IOMGR_IOCOMPLETION', 
+N'CHECKPOINT_QUEUE', N'REQUEST_FOR_DEADLOCK_SEARCH', 
+N'XE_TIMER_EVENT',   N'XE_DISPATCHER_JOIN', 
+N'LOGMGR_QUEUE',     N'FT_IFTS_SCHEDULER_IDLE_WAIT', 
+N'BROKER_TASK_STOP', N'CLR_MANUAL_EVENT', 
+N'CLR_AUTO_EVENT',   N'DISPATCHER_QUEUE_SEMAPHORE', 
+N'TRACEWRITE',       N'XE_DISPATCHER_WAIT', 
+N'BROKER_TO_FLUSH',  N'BROKER_EVENTHANDLER', 
+N'FT_IFTSHC_MUTEX',  N'SQLTRACE_INCREMENTAL_FLUSH_SLEEP', 
+N'DIRTY_PAGE_POLL',  N'SP_SERVER_DIAGNOSTICS_SLEEP') 
+) 
+SELECT 
+[W1].[wait_type] AS [WaitType], 
+CAST ([W1].[WaitS] AS DECIMAL(14, 2)) AS [Wait_S], 
+CAST ([W1].[ResourceS] AS DECIMAL(14, 2)) AS [Resource_S], 
+CAST ([W1].[SignalS] AS DECIMAL(14, 2)) AS [Signal_S], 
+[W1].[WaitCount] AS [WaitCount], 
+CAST ([W1].[Percentage] AS DECIMAL(4, 2)) AS [Percentage], 
+CAST (([W1].[WaitS] / [W1].[WaitCount]) AS DECIMAL (14, 4)) AS [AvgWait_S], 
+CAST (([W1].[ResourceS] / [W1].[WaitCount]) AS DECIMAL (14, 4)) AS [AvgRes_S], 
+CAST (([W1].[SignalS] / [W1].[WaitCount]) AS DECIMAL (14, 4)) AS [AvgSig_S] 
+FROM [Waits] AS [W1] 
+INNER JOIN [Waits] AS [W2] 
+ON [W2].[RowNum] <= [W1].[RowNum] 
+ GROUP BY [W1].[RowNum], [W1].[wait_type], [W1].[WaitS], 
+     [W1].[ResourceS], [W1].[SignalS], [W1].[WaitCount], [W1].[Percentage] 
+ HAVING SUM ([W2].[Percentage]) - [W1].[Percentage] < 95; -- percentage threshold 
+GO 
+--Database mem allocation
+SELECT LEFT(CASE database_id 
+   WHEN 32767 THEN 'ResourceDb' 
+   ELSE db_name(database_id) 
+        END, 20) AS Database_Name,
+ count(*)AS Buffered_Page_Count, 
+ count(*) * 8192 / (1024 * 1024) as Buffer_Pool_MB
+FROM sys.dm_os_buffer_descriptors
+GROUP BY db_name(database_id) ,database_id
+ORDER BY Buffered_Page_Count DESC
+
+--Top Memory by object
+SELECT TOP 25 
+ obj.[name],
+ i.[name],
+ i.[type_desc],
+ count(*)AS Buffered_Page_Count ,
+ count(*) * 8192 / (1024 * 1024) as Buffer_MB
+    -- ,obj.name ,obj.index_id, i.[name]
+FROM sys.dm_os_buffer_descriptors AS bd 
+    INNER JOIN 
+    (
+        SELECT object_name(object_id) AS name 
+            ,index_id ,allocation_unit_id, object_id
+        FROM sys.allocation_units AS au
+            INNER JOIN sys.partitions AS p 
+                ON au.container_id = p.hobt_id 
+                    AND (au.type = 1 OR au.type = 3)
+        UNION ALL
+        SELECT object_name(object_id) AS name   
+            ,index_id, allocation_unit_id, object_id
+        FROM sys.allocation_units AS au
+            INNER JOIN sys.partitions AS p 
+                ON au.container_id = p.hobt_id 
+                    AND au.type = 2
+    ) AS obj 
+        ON bd.allocation_unit_id = obj.allocation_unit_id
+LEFT JOIN sys.indexes i on i.object_id = obj.object_id AND i.index_id = obj.index_id
+WHERE database_id = db_id()
+GROUP BY obj.name, obj.index_id , i.[name],i.[type_desc]
+ORDER BY Buffered_Page_Count DESC
+
+dbcc memorystatus
+
+--sp_helpdb
+--dbcc shrinkfile (4, emptyfile);
+--GO
+--alter database tempdb 
+--remove file tempdev3
+--USE [tempdb]
+--exec SP_HELPFILE;
+--select * from sys.database_files
+--dbcc page(4, 720)
+
+--IO SUBSYSTEM LATENCY BY DB
+SELECT 
+    --virtual file latency 
+    [ReadLatency] = 
+     CASE WHEN [num_of_reads] = 0 
+THEN 0 ELSE ([io_stall_read_ms] / [num_of_reads]) END, 
+    [WriteLatency] = 
+     CASE WHEN [num_of_writes] = 0 
+THEN 0 ELSE ([io_stall_write_ms] / [num_of_writes]) END, 
+    [Latency] = 
+    CASE WHEN ([num_of_reads] = 0 AND [num_of_writes] = 0) 
+THEN 0 ELSE ([io_stall] / ([num_of_reads] + [num_of_writes])) END, 
+    --avg bytes per IOP 
+    [AvgBPerRead] = 
+    CASE WHEN [num_of_reads] = 0 
+  THEN 0 ELSE ([num_of_bytes_read] / [num_of_reads]) END, 
+    [AvgBPerWrite] = 
+    CASE WHEN [io_stall_write_ms] = 0 
+THEN 0 ELSE ([num_of_bytes_written] / [num_of_writes]) END, 
+[AvgBPerTransfer] = 
+CASE WHEN ([num_of_reads] = 0 AND [num_of_writes] = 0) 
+ THEN 0 ELSE 
+                (([num_of_bytes_read] + [num_of_bytes_written]) / 
+                ([num_of_reads] + [num_of_writes])) END, 
+    LEFT ([mf].[physical_name], 2) AS [Drive], 
+    DB_NAME ([vfs].[database_id]) AS [DB], 
+    --[vfs].*,  
+    [mf].[physical_name] 
+FROM  sys.dm_io_virtual_file_stats (NULL,NULL) AS [vfs] 
+JOIN sys.master_files AS [mf]  
+    ON [vfs].[database_id] = [mf].[database_id]  
+    AND [vfs].[file_id] = [mf].[file_id]  
+-- WHERE [vfs].[file_id] = 2 -- log files  
+-- ORDER BY [Latency] DESC  
+ORDER BY [ReadLatency] DESC 
+--ORDER BY [WriteLatency] DESC; 
+GO 
+
+--Lock Waits
+SELECT OBJECT_SCHEMA_NAME(ios.object_id) + '.' + OBJECT_NAME(ios.object_id) as table_name  
+,i.name as index_name 
+,page_latch_wait_count 
+,page_latch_wait_in_ms  
+,CAST(1. * page_latch_wait_in_ms / NULLIF(page_latch_wait_count ,0) AS decimal(12,2)) AS page_avg_lock_wait_ms 
+FROM sys.dm_db_index_operational_stats (DB_ID(), NULL, NULL, NULL) ios 
+INNER JOIN sys.indexes i ON i.object_id = ios.object_id AND i.index_id = ios.index_id 
+WHERE OBJECTPROPERTY(ios.object_id,'IsUserTable') = 1 
+ORDER BY 5 DESC 
+
+-- Plan Cached and Plan cached that will not be reused
+select sum(size_in_bytes)/1024/1024 as Total_MB
+from sys.dm_exec_cached_plans;
+go
+--Total_MB
+--84032
+select sum(size_in_bytes)/1024/1024 as Total_MB
+from sys.dm_exec_cached_plans
+where objtype = 'Adhoc'
+or objtype = 'Prepared';
+go
+--Total_MB
+--73208
+--free sql cache. Release of ad hoc and prepared cached plans
+--DBCC FREESYSTEMCACHE ('SQL Plans'); 
+
+--what trace flags are enabled
+--DBCC TRACESTATUS(-1); --GLOBALLY
+--DBCC TRACESTATUS(); --LOCALLY
+GO
+--Enable trace flag globally
+--DBCC TRACEON (1118, -1)
+
+--PERFORMANCE COUNTERS INCLUDING TARGET AND COMMITED MEMORY PAGES
+dbcc sqlperf(umsstats)
+select @@version
+
+SELECT @@SERVERNAME AS [Server Name], [object_name], instance_name, cntr_value AS [Page Life Expectancy]
+FROM sys.dm_os_performance_counters WITH (NOLOCK)
+WHERE [object_name] LIKE N'%Buffer Node%' -- Handles named instances
+AND counter_name = N'Page life expectancy' OPTION (RECOMPILE);
+
+SELECT [object_name],
+[counter_name],
+[cntr_value]
+FROM sys.dm_os_performance_counters
+WHERE [object_name] LIKE '%Manager%'
+AND [counter_name] = 'Total Pages'
+
+SELECT [object_name],
+[counter_name],
+[cntr_value]
+FROM sys.dm_os_performance_counters
+WHERE [object_name] LIKE '%Manager%'
+AND [counter_name] = 'Target pages'
+
+SELECT [object_name],
+[counter_name],
+[cntr_value]
+FROM sys.dm_os_performance_counters
+WHERE [object_name] LIKE '%Manager%'
+AND [counter_name] = 'Page life expectancy'
+
+select * FROM sys.dm_os_performance_counters
+where counter_name like '%memory%'
+go
+
+/*
+--kill processes older than an hour
+DECLARE @v_spid INT
+DECLARE Users CURSOR
+FAST_FORWARD FOR
+SELECT SPID, *
+FROM master.dbo.sysprocesses (NOLOCK)
+WHERE spid>50 
+AND status='sleeping'
+AND DATEDIFF(mi,last_batch,GETDATE())>=60 --Check sleeping connections that exists before 60 min..
+AND spid<>@@spid
+and hostname <> 'DEVELOP03'
+OPEN Users
+FETCH NEXT FROM Users INTO @v_spid
+WHILE (@@FETCH_STATUS=0)
+BEGIN
+PRINT 'KILLing '+CONVERT(VARCHAR,@v_spid)+'...'
+EXEC('KILL '+@v_spid)
+FETCH NEXT FROM Users INTO @v_spid
+END
+CLOSE Users
+DEALLOCATE Users
+EXEC sp_MSForEachTable 'UPDATE STATISTICS ? WITH FULLSCAN;'
+*/
+
+--Average Wait in MS
+SELECT
+
+    *
+
+   ,wait_time_ms/waiting_tasks_count AS 'Avg Wait in ms'
+
+FROM
+
+   sys.dm_os_wait_stats 
+
+WHERE
+
+   waiting_tasks_count > 0
+
+ORDER BY
+
+   wait_time_ms DESC

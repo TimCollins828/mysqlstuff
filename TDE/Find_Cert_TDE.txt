@@ -1,0 +1,13 @@
+--Find cert name and corresponding database
+select		db_name(dek.database_id) AS ProtectedDB
+		, dek.create_date
+		, c.name
+		, c.certificate_id
+		, c.pvt_key_encryption_type_desc
+                , c.pvt_key_last_backup_date
+		, c.issuer_name
+		, c.subject
+		, c.start_date
+		, c.expiry_date
+		from sys.dm_database_encryption_keys dek
+inner join master.sys.certificates c on dek.encryptor_thumbprint = c.thumbprint

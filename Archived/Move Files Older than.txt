@@ -1,0 +1,1 @@
+FORFILES /P F:\MSSQLBAK\53 /D -2 /C "cmd /c MOVE @file F:\MSSQLBAK\53\Archicves\@relpath"

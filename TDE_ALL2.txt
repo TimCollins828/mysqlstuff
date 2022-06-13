@@ -1,0 +1,420 @@
+---------------------------------------
+------//Encrypt Database//------------
+-------------------------------------
+--
+--Is there a master key?
+use master
+go
+select * from sys.symmetric_keys
+select * FROM sys.dm_database_encryption_keys
+select * from sys.certificates
+
+--Create master key and add the certificate to the destination server:
+-------------------------------------------
+--Create Master Key on Destination Server
+-------------------------------------------
+
+USE master
+GO
+CREATE MASTER KEY 
+ENCRYPTION BY PASSWORD = 'DBMKV0ltR0n2*%31!'
+GO
+--//Backup Service Master Key//--
+BACKUP SERVICE MASTER KEY TO FILE = 'D:\TDE\TDE_Backup\POST\SMK_HREWWDEVDB1231_CDB'   
+    ENCRYPTION BY PASSWORD = 'SMKGre3nL10n$@98g'  
+--//Backup Database Master key//--
+Use Master
+go
+BACKUP MASTER KEY TO FILE = 'D:\TDE\TDE_Backup\POST\DBMK_HREWWDEVDB1231_CDB'   
+    ENCRYPTION BY PASSWORD = 'DBMKV0ltR0n2*%31!'
+
+------------------------------------------------------------------------------
+--Create cert and key on Destination from Source (the one we saved earlier)
+------------------------------------------------------------------------------
+Use master
+go
+CREATE CERTIFICATE [HREWWDEVDB1232.washdc.state.sbu]
+FROM FILE = 'D:\TDE\Original\HREWWDEVDB1232.washdc.state.sbu_1.cer'     
+WITH PRIVATE KEY (FILE = 'D:\TDE\Original\HREWWDEVDB1232.washdc.state.sbu_1.pvk', 
+DECRYPTION BY PASSWORD = '19July16@')
+--TDEyUsp#xa&eX5x
+
+--Backup Cert
+-----------------
+Use Master
+go
+
+BACKUP CERTIFICATE [HREWWDEVDB1232.washdc.state.sbu] TO FILE = 'D:\TDE\TDE_Backup\HREWWDEVDB1232.washdc.state.sbu_1.cer'  
+   WITH PRIVATE KEY ( FILE = 'D:\TDE\TDE_Backup\HREWWDEVDB1232.washdc.state.sbu_1.pvk' , 
+   ENCRYPTION BY PASSWORD = 'TDEyUsp#xa&eX5x' );
+GO
+
+--User Database Encryption Key Creation
+USE PASSPS;
+GO
+CREATE DATABASE ENCRYPTION KEY
+WITH ALGORITHM = AES_256
+ENCRYPTION BY SERVER CERTIFICATE [HREWWDEVDB1232.washdc.state.sbu];
+GO
+
+--Encrypt Database
+ALTER DATABASE PASSPS
+SET ENCRYPTION ON;
+GO
+
+
+--Check Encryption State
+SELECT database_id, encryption_state
+FROM sys.dm_database_encryption_keys;
+GO
+select is_encrypted, * from sys.databases
+--Find cert name and corresponding database
+select		db_name(dek.database_id) AS ProtectedDB
+		, dek.create_date
+		, c.name
+		, c.certificate_id
+		, c.pvt_key_encryption_type_desc
+                , c.pvt_key_last_backup_date
+		, c.issuer_name
+		, c.subject
+		, c.start_date
+		, c.expiry_date
+		from sys.dm_database_encryption_keys dek
+inner join master.sys.certificates c on dek.encryptor_thumbprint = c.thumbprint
+--
+--------------------------------------------------------------------------------------------------------
+----------------------------------------------
+----Certificate for NSDD38 on HRTRNDB1223\CPY-
+-- Tim Collins
+-- 03/15/2016
+----------------------------------------------
+--Grants at bottom if needed
+---------------------------------
+--Locate Current Cert in Database
+---------------------------------
+use NSDD38
+go
+--Master Key 
+select * from sys.symmetric_keys
+select * from.sys.certificates
+
+-- this provides the list of databases (encryption_state = 3) is encrypted
+SELECT * FROM sys.dm_database_encryption_keys
+ WHERE encryption_state = 3;
+ select * from sys.databases
+
+------------------------------------------------
+--This provides the cert name and database
+select
+    database_name = d.name,
+    dek.key_algorithm,
+    cert_name = c.name
+from sys.dm_database_encryption_keys dek
+left join sys.certificates c
+on dek.encryptor_thumbprint = c.thumbprint
+inner join sys.databases d
+on dek.database_id = d.database_id;
+
+--Backup old Cert
+-----------------
+Use Master
+go
+
+BACKUP CERTIFICATE TDECert2 TO FILE = 'd:\TDE\TDECert2.cer'
+   WITH PRIVATE KEY ( FILE = 'd:\TDE\TDECert2_Key.pvk' , 
+   ENCRYPTION BY PASSWORD = 'OldP@ssW0rd45$%' );
+GO
+
+--Create New Cert
+USE Master
+GO
+
+CREATE CERTIFICATE NSDD38_DB_Cert 
+   WITH SUBJECT = 'NSDD38', 
+   EXPIRY_DATE = '20170315';
+GO
+--Backup New Cert
+Use Master
+go
+
+BACKUP CERTIFICATE NSDD38_DB_Cert TO FILE = 'd:\TDE\NSDD38_DB_Cert.cer'
+   WITH PRIVATE KEY ( FILE = 'd:\TDE\NSDD38_DB_Key.pvk' , 
+   ENCRYPTION BY PASSWORD = 'NewP@ssW0rd45$%' );
+GO
+
+--DROP Certificate
+USE master;  
+DROP CERTIFICATE Shipping04;
+
+--------------------------------------------
+-- Alter Database Encryption Off
+-- Drop Current Key
+-------------------------------------------
+
+ALTER DATABASE NSDD38
+SET ENCRYPTION OFF;
+GO
+
+/* Wait for decryption operation to complete, look for a 
+value of  1 in the query below. */
+SELECT encryption_state
+FROM sys.dm_database_encryption_keys;
+GO
+select * from sys.databases
+
+USE NSDD38;
+GO
+DROP DATABASE ENCRYPTION KEY;
+GO
+---
+-------------------------------------------
+--Associate the NEW Cert with the Database
+--Set Encryption ON
+-------------------------------------------
+--******************************************
+--CLOSE ALL SYMMETRIC KEYS;
+--
+USE NSDD38;
+GO
+CREATE DATABASE ENCRYPTION KEY
+WITH ALGORITHM = AES_128
+ENCRYPTION BY SERVER CERTIFICATE NSDD38_DB_Cert
+GO
+--Set Encryption ON
+Alter Database NSDD38
+Set ENCRYPTION ON;
+Go
+
+-- Backup the Database
+Backup Database NSDD38 to Disk = 'D:\TDE\NSDD38Cert_03152016.bak'
+--******************************************************
+--MOVE CERT, kEY, AND BACKUP TO DESTINATION SERVER--
+--******************************************************
+-------------------------------------------
+--Set Encryption OFF
+--Drop Key
+-------------------------------------------
+--
+ALTER DATABASE NSDD38
+SET ENCRYPTION OFF;
+GO
+
+/* Wait for decryption operation to complete, look for a 
+value of  1 in the query below. */
+SELECT encryption_state
+FROM sys.dm_database_encryption_keys;
+GO
+
+USE NSDD38;
+GO
+DROP DATABASE ENCRYPTION KEY;
+GO
+---
+-------------------------------------------
+--Associate the OLD Cert with the Database
+--Set Encryption ON
+-------------------------------------------
+
+CREATE DATABASE ENCRYPTION KEY
+WITH ALGORITHM = AES_128
+ENCRYPTION BY SERVER CERTIFICATE TDECert2;
+GO
+--Set Encryption ON
+Alter Database NSDD38
+Set ENCRYPTION ON;
+Go
+
+---------------------------
+-- Process Complete--------
+-- Check Encryption Status-
+---------------------------
+SELECT encryption_state
+FROM sys.dm_database_encryption_keys;
+GO
+select * from sys.databases
+--grant control on certificate::##MS_DatabaseMasterKey## to [washdc\admcollinstd2]
+--grant view definition on certificate::MS_DatabaseMasterKey to [washdc\admcollinstd2]
+--GRANT ALTER ANY SYMMETRIC KEY TO [washdc\admcollinstd2]
+--select * from sys.certificates
+--select is_encrypted, * from sys.databases
+--select @@version
+--sp_who2
+========
+Restore-------------------------------------------------------------------------------------
+========
+---------------------------------------
+--Enable Encryption and Restore NSDD38
+-- on HRDEVDB1217/EE_DEV2K8
+-- Tim Collins
+-- 03/15/2015
+---------------------------------------
+--Is there a master key?
+use master
+go
+select * from sys.symmetric_keys
+select * FROM sys.dm_database_encryption_keys
+
+use NSDD38
+go
+select * from.sys.certificates
+
+--Create master key and add the certificate to the destination server:
+--Create Master Key on Destination Server
+
+USE master
+GO
+CREATE MASTER KEY 
+ENCRYPTION BY PASSWORD = 'T3stEncry6t1on123!@#'
+GO
+
+--Create cert and key on Destination from Source (the one we saved earlier)
+Use master
+go
+CREATE CERTIFICATE NSDD38_DB_Cert
+FROM FILE = 'd:\temp\TDE_TEST\NSDD38_DB_Cert.cer'     
+WITH PRIVATE KEY (FILE = 'd:\temp\TDE_TEST\NSDD38_DB_Key.pvk', 
+DECRYPTION BY PASSWORD = 'NewP@ssW0rd45$%')
+
+-------------------
+--Restore database
+-------------------
+--
+--Now check the encryption Status
+--
+Select *, encryption_state
+FROM sys.dm_database_encryption_keys;
+GO
+select * from sys.databases
+where name = 'NSDD38';
+--------------------------
+-- Alter Encryption OFF --
+--------------------------
+ALTER DATABASE NSDD38
+SET ENCRYPTION OFF;
+GO
+
+/* Wait for decryption operation to complete, look for a 
+value of  1 in the query below. */
+Select *, encryption_state
+FROM sys.dm_database_encryption_keys;
+GO
+select * from sys.databases
+where name = 'NSDD38';
+
+--Backup and move to destination if needed.
+
+-------//Remove TDE//-------
+--Disable Encryption
+--Drop Key
+--Drop Certificate
+
+ALTER DATABASE AdventureWorks2012  
+SET ENCRYPTION OFF;  
+GO  
+/* Wait for decryption operation to complete, look for a   
+value of  1 in the query below. */  
+SELECT encryption_state  
+FROM sys.dm_database_encryption_keys;  
+GO  
+USE AdventureWorks2012;  
+GO  
+DROP DATABASE ENCRYPTION KEY;  
+GO  
+
+--
+use database_name;
+go
+
+DROP CERTIFICATE certificate_name  
+
+--Drop Key if needed
+/*USE NSDD38;
+GO
+DROP DATABASE ENCRYPTION KEY;
+GO
+--========================
+--======RESTORe #2
+--========================
+--Restore Database with Cert/Key
+--------------------------------
+--These scripts will help you determine what keys and certificates are on the database. Be sure to run this in 
+
+the --
+--Master as well as in the Source Database so you can see the Master Key as well. Note that an encryption state 
+
+of 3 --is encrypted. 
+--The password in the Create cert section is the actual password used for decrypting the attached cert/key.
+
+use master
+go
+select * from sys.symmetric_keys
+select * FROM sys.dm_database_encryption_keys
+
+-- Create Master if one doesn’t exist
+USE master
+GO
+CREATE MASTER KEY 
+ENCRYPTION BY PASSWORD = 'StrongPasswordHere'
+GO
+-
+
+--Create cert and key on Destination from Source (the one we saved earlier)
+--NOTE:Change your path to where you have put the files.
+Use master
+go
+CREATE CERTIFICATE NSDD38_DB_Cert
+FROM FILE = 'd:\temp\TDE_TEST\NSDD38_DB_Cert.cer'     
+WITH PRIVATE KEY (FILE = 'd:\temp\TDE_TEST\NSDD38_DB_Key.pvk', 
+DECRYPTION BY PASSWORD = 'NewP@ssW0rd45$%')
+
+-- Restore Database
+--Restore the database with your preferred method.
+
+--Review encryption status
+Select encryption_state, *
+FROM sys.dm_database_encryption_keys;
+GO
+select * from sys.databases
+go
+
+select encrypt_option, net_transport, session_id, client_net_address, client_tcp_port, local_net_address, local_tcp_port
+FROM sys.dm_exec_connections 
+---------------------------------------------------
+----------BACKUPS----------------------------
+---------------------------------------------------
+--//Backup Service Master Key//--
+Use Master
+go
+
+BACKUP SERVICE MASTER KEY TO FILE = 'D:\TDE\TDE_Backup\DEV2\SMK_HREWWDEVDB1218_DEV2'   
+    ENCRYPTION BY PASSWORD = 'SMKGre3nL10n$@98g'  
+--//Backup Database Master key//--
+Use Master
+go
+BACKUP MASTER KEY TO FILE = 'D:\TDE\TDE_Backup\DEV2\DBMK_HREWWDEVDB1218_DEV2'   
+    ENCRYPTION BY PASSWORD = 'DBMKV0ltR0n2*%31!'
+
+
+	-----------------
+Use Master
+go
+
+BACKUP CERTIFICATE DEV_HREWWDEVDB1218_DEV2_Cert TO FILE = 'D:\TDE\TDE_Backup\HREWWDEVDB1218.washdc.state.sbu.cer'
+   WITH PRIVATE KEY ( FILE = 'D:\TDE\TDE_Backup\HREWWDEVDB1218.washdc.state.sbu.pvk' , 
+   ENCRYPTION BY PASSWORD = 'TDEyUsp#xa&eX5x' );
+GO
+
+select * from sys.databases
+--Find cert name and corresponding database
+select		db_name(dek.database_id) AS ProtectedDB
+		, dek.create_date
+		, c.name
+		, c.certificate_id
+		, c.pvt_key_encryption_type_desc
+                , c.pvt_key_last_backup_date
+		, c.issuer_name
+		, c.subject
+		, c.start_date
+		, c.expiry_date
+		from sys.dm_database_encryption_keys dek
+inner join master.sys.certificates c on dek.encryptor_thumbprint = c.thumbprint

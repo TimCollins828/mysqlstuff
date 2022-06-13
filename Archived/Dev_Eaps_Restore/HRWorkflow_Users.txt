@@ -1,0 +1,177 @@
+-- [-- DB CONTEXT --] --
+USE [HRWorkflow]
+ 
+-- [-- DB USERS --] --
+ 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'CRC') BEGIN CREATE USER  [CRC] FOR LOGIN [CRC] WITH DEFAULT_SCHEMA = [dbo] END; 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'dbo') BEGIN CREATE USER  [dbo] FOR LOGIN [dbo] WITH DEFAULT_SCHEMA = [dbo] END; 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'guest') BEGIN CREATE USER  [guest] FOR LOGIN [guest] WITH DEFAULT_SCHEMA = [guest] END; 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'HRPRDDB1216\SQL_Backup') BEGIN CREATE USER  [HRPRDDB1216\SQL_Backup] FOR LOGIN [HRPRDDB1216\SQL_Backup] WITH DEFAULT_SCHEMA = [dbo] END; 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'ijeuser') BEGIN CREATE USER  [ijeuser] FOR LOGIN [ijeuser] WITH DEFAULT_SCHEMA = [dbo] END; 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'NSDD38') BEGIN CREATE USER  [NSDD38] FOR LOGIN [NSDD38] WITH DEFAULT_SCHEMA = [dbo] END; 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'PASSPS') BEGIN CREATE USER  [PASSPS] FOR LOGIN [PASSPS] WITH DEFAULT_SCHEMA = [dbo] END; 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'PORTUsr') BEGIN CREATE USER  [PORTUsr] FOR LOGIN [PORTUsr] WITH DEFAULT_SCHEMA = [dbo] END; 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'tems_evac') BEGIN CREATE USER  [tems_evac] FOR LOGIN [tems_evac] WITH DEFAULT_SCHEMA = [dbo] END; 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'WASHDC\ADMBrunerCJ') BEGIN CREATE USER  [WASHDC\ADMBrunerCJ] FOR LOGIN [WASHDC\ADMBrunerCJ] WITH DEFAULT_SCHEMA = [dbo] END; 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'WASHDC\AdmMokrushinVV') BEGIN CREATE USER  [WASHDC\AdmMokrushinVV] FOR LOGIN [WASHDC\AdmMokrushinVV] WITH DEFAULT_SCHEMA = [dbo] END; 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'WASHDC\AdmRameyVL') BEGIN CREATE USER  [WASHDC\AdmRameyVL] FOR LOGIN [WASHDC\AdmRameyVL] WITH DEFAULT_SCHEMA = [dbo] END; 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'WASHDC\AdmZollerMJ') BEGIN CREATE USER  [WASHDC\AdmZollerMJ] FOR LOGIN [WASHDC\AdmZollerMJ] WITH DEFAULT_SCHEMA = [dbo] END; 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'WASHDC\BorySA') BEGIN CREATE USER  [WASHDC\BorySA] FOR LOGIN [WASHDC\BorySA] WITH DEFAULT_SCHEMA = [dbo] END; 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'WASHDC\BurkhartMG') BEGIN CREATE USER  [WASHDC\BurkhartMG] FOR LOGIN [WASHDC\BurkhartMG] WITH DEFAULT_SCHEMA = [dbo] END; 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'WASHDC\caotv') BEGIN CREATE USER  [WASHDC\caotv] FOR LOGIN [WASHDC\caotv] WITH DEFAULT_SCHEMA = [dbo] END; 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'washdc\chupp') BEGIN CREATE USER  [washdc\chupp] FOR LOGIN [washdc\chupp] WITH DEFAULT_SCHEMA = [dbo] END; 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'WASHDC\hreesvcdevcaje') BEGIN CREATE USER  [WASHDC\hreesvcdevcaje] FOR LOGIN [WASHDC\hreesvcdevcaje] WITH DEFAULT_SCHEMA = [dbo] END; 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'WASHDC\hreesvcdevcdb') BEGIN CREATE USER  [WASHDC\hreesvcdevcdb] FOR LOGIN [WASHDC\hreesvcdevcdb] WITH DEFAULT_SCHEMA = [dbo] END; 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'WASHDC\hreesvcdeveaps') BEGIN CREATE USER  [WASHDC\hreesvcdeveaps] FOR LOGIN [WASHDC\hreesvcdeveaps] WITH DEFAULT_SCHEMA = [dbo] END; 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'WASHDC\hreesvcprdcaje') BEGIN CREATE USER  [WASHDC\hreesvcprdcaje] FOR LOGIN [WASHDC\hreesvcprdcaje] WITH DEFAULT_SCHEMA = [dbo] END; 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'WASHDC\hreesvcprdcdb') BEGIN CREATE USER  [WASHDC\hreesvcprdcdb] FOR LOGIN [WASHDC\hreesvcprdcdb] WITH DEFAULT_SCHEMA = [dbo] END; 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'WASHDC\hreesvcprdcdblink') BEGIN CREATE USER  [WASHDC\hreesvcprdcdblink] FOR LOGIN [WASHDC\hreesvcprdcdblink] WITH DEFAULT_SCHEMA = [dbo] END; 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'WASHDC\hreesvcprdeaps') BEGIN CREATE USER  [WASHDC\hreesvcprdeaps] FOR LOGIN [WASHDC\hreesvcprdeaps] WITH DEFAULT_SCHEMA = [dbo] END; 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'WASHDC\hreesvcprdinformatic') BEGIN CREATE USER  [WASHDC\hreesvcprdinformatic] FOR LOGIN [WASHDC\hreesvcprdinformatic] WITH DEFAULT_SCHEMA = [dbo] END; 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'WASHDC\hreesvcprdoracle') BEGIN CREATE USER  [WASHDC\hreesvcprdoracle] FOR LOGIN [WASHDC\hreesvcprdoracle] WITH DEFAULT_SCHEMA = [dbo] END; 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'WASHDC\hreesvcprdSQL8') BEGIN CREATE USER  [WASHDC\hreesvcprdSQL8] FOR LOGIN [WASHDC\hreesvcprdSQL8] WITH DEFAULT_SCHEMA = [dbo] END; 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'WASHDC\HREWSVCPRDCAJE') BEGIN CREATE USER  [WASHDC\HREWSVCPRDCAJE] FOR LOGIN [WASHDC\HREWSVCPRDCAJE] WITH DEFAULT_SCHEMA = [dbo] END; 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'WASHDC\hrewsvcprdcdblink') BEGIN CREATE USER  [WASHDC\hrewsvcprdcdblink] FOR LOGIN [WASHDC\hrewsvcprdcdblink] WITH DEFAULT_SCHEMA = [dbo] END; 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'WASHDC\hrewsvcprdeaps') BEGIN CREATE USER  [WASHDC\hrewsvcprdeaps] FOR LOGIN [WASHDC\hrewsvcprdeaps] WITH DEFAULT_SCHEMA = [dbo] END; 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'WASHDC\hrewsvcprdinformatic') BEGIN CREATE USER  [WASHDC\hrewsvcprdinformatic] FOR LOGIN [WASHDC\hrewsvcprdinformatic] WITH DEFAULT_SCHEMA = [dbo] END; 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'WASHDC\hrewsvcprdoracle') BEGIN CREATE USER  [WASHDC\hrewsvcprdoracle] FOR LOGIN [WASHDC\hrewsvcprdoracle] WITH DEFAULT_SCHEMA = [dbo] END; 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'WASHDC\HREWSVCPRDSQL2K8') BEGIN CREATE USER  [WASHDC\HREWSVCPRDSQL2K8] FOR LOGIN [WASHDC\HREWSVCPRDSQL2K8] WITH DEFAULT_SCHEMA = [dbo] END; 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'WASHDC\hrewsvcprdSQL8') BEGIN CREATE USER  [WASHDC\hrewsvcprdSQL8] FOR LOGIN [WASHDC\hrewsvcprdSQL8] WITH DEFAULT_SCHEMA = [dbo] END; 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'WASHDC\hrsvcprdeaps') BEGIN CREATE USER  [WASHDC\hrsvcprdeaps] FOR LOGIN [WASHDC\hrsvcprdeaps] WITH DEFAULT_SCHEMA = [dbo] END; 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'WASHDC\hrsvctsteaps') BEGIN CREATE USER  [WASHDC\hrsvctsteaps] FOR LOGIN [WASHDC\hrsvctsteaps] WITH DEFAULT_SCHEMA = [dbo] END; 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'WASHDC\MaulikD') BEGIN CREATE USER  [WASHDC\MaulikD] FOR LOGIN [WASHDC\MaulikD] WITH DEFAULT_SCHEMA = [dbo] END; 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'WASHDC\QiS') BEGIN CREATE USER  [WASHDC\QiS] FOR LOGIN [WASHDC\QiS] WITH DEFAULT_SCHEMA = [dbo] END; 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'WASHDC\RameyVL') BEGIN CREATE USER  [WASHDC\RameyVL] FOR LOGIN [WASHDC\RameyVL] WITH DEFAULT_SCHEMA = [dbo] END; 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'WASHDC\SchwierRE') BEGIN CREATE USER  [WASHDC\SchwierRE] FOR LOGIN [WASHDC\SchwierRE] WITH DEFAULT_SCHEMA = [dbo] END; 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'WASHDC\ThataiVA') BEGIN CREATE USER  [WASHDC\ThataiVA] FOR LOGIN [WASHDC\ThataiVA] WITH DEFAULT_SCHEMA = [dbo] END; 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'WASHDC\TrieuD') BEGIN CREATE USER  [WASHDC\TrieuD] FOR LOGIN [WASHDC\TrieuD] WITH DEFAULT_SCHEMA = [dbo] END; 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'WASHDC\VermaRK') BEGIN CREATE USER  [WASHDC\VermaRK] FOR LOGIN [WASHDC\VermaRK] WITH DEFAULT_SCHEMA = [dbo] END; 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'WASHDC\WASHDCODSSVCVMD') BEGIN CREATE USER  [WASHDC\WASHDCODSSVCVMD] FOR LOGIN [WASHDC\WASHDCODSSVCVMD] WITH DEFAULT_SCHEMA = [WASHDC\WASHDCODSSVCVMD] END; 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'WASHDC\yeesp') BEGIN CREATE USER  [WASHDC\yeesp] FOR LOGIN [WASHDC\yeesp] WITH DEFAULT_SCHEMA = [dbo] END; 
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'WASHDC\ZollerMJ') BEGIN CREATE USER  [WASHDC\ZollerMJ] FOR LOGIN [WASHDC\ZollerMJ] WITH DEFAULT_SCHEMA = [dbo] END; 
+-- [-- DB ROLES --] --
+EXEC sp_addrolemember @rolename = 'db_datareader', @membername = 'ijeuser'
+EXEC sp_addrolemember @rolename = 'db_datareader', @membername = 'NSDD38'
+EXEC sp_addrolemember @rolename = 'db_datareader', @membername = 'tems_evac'
+EXEC sp_addrolemember @rolename = 'db_datareader', @membername = 'WASHDC\ADMBrunerCJ'
+EXEC sp_addrolemember @rolename = 'db_datareader', @membername = 'WASHDC\caotv'
+EXEC sp_addrolemember @rolename = 'db_datareader', @membername = 'WASHDC\HR_EAPS_DEV_Read'
+EXEC sp_addrolemember @rolename = 'db_datareader', @membername = 'WASHDC\hreesvcprdcdblink'
+EXEC sp_addrolemember @rolename = 'db_datareader', @membername = 'WASHDC\hreesvcprdinformatic'
+EXEC sp_addrolemember @rolename = 'db_datareader', @membername = 'WASHDC\hreesvcprdoracle'
+EXEC sp_addrolemember @rolename = 'db_datareader', @membername = 'WASHDC\hreesvcprdSQL8'
+EXEC sp_addrolemember @rolename = 'db_datareader', @membername = 'WASHDC\hrewsvcprdcdblink'
+EXEC sp_addrolemember @rolename = 'db_datareader', @membername = 'WASHDC\hrewsvcprdinformatic'
+EXEC sp_addrolemember @rolename = 'db_datareader', @membername = 'WASHDC\MaulikD'
+EXEC sp_addrolemember @rolename = 'db_datareader', @membername = 'WASHDC\QiS'
+EXEC sp_addrolemember @rolename = 'db_datareader', @membername = 'WASHDC\SchwierRE'
+EXEC sp_addrolemember @rolename = 'db_datareader', @membername = 'WASHDC\TrieuD'
+EXEC sp_addrolemember @rolename = 'db_datareader', @membername = 'WASHDC\VermaRK'
+EXEC sp_addrolemember @rolename = 'db_datareader', @membername = 'WASHDC\yeesp'
+EXEC sp_addrolemember @rolename = 'db_datawriter', @membername = 'ijeuser'
+EXEC sp_addrolemember @rolename = 'db_datawriter', @membername = 'NSDD38'
+EXEC sp_addrolemember @rolename = 'db_datawriter', @membername = 'tems_evac'
+EXEC sp_addrolemember @rolename = 'db_datawriter', @membername = 'WASHDC\ADMBrunerCJ'
+EXEC sp_addrolemember @rolename = 'db_datawriter', @membername = 'WASHDC\hreesvcprdinformatic'
+EXEC sp_addrolemember @rolename = 'db_datawriter', @membername = 'WASHDC\hreesvcprdSQL8'
+EXEC sp_addrolemember @rolename = 'db_datawriter', @membername = 'WASHDC\hrewsvcprdinformatic'
+EXEC sp_addrolemember @rolename = 'db_datawriter', @membername = 'WASHDC\hrewsvcprdoracle'
+EXEC sp_addrolemember @rolename = 'db_datawriter', @membername = 'WASHDC\RameyVL'
+EXEC sp_addrolemember @rolename = 'db_ddladmin', @membername = 'ijeuser'
+EXEC sp_addrolemember @rolename = 'db_ddladmin', @membername = 'NSDD38'
+EXEC sp_addrolemember @rolename = 'db_ddladmin', @membername = 'tems_evac'
+EXEC sp_addrolemember @rolename = 'db_ddladmin', @membername = 'WASHDC\hreesvcprdinformatic'
+EXEC sp_addrolemember @rolename = 'db_ddladmin', @membername = 'WASHDC\hrewsvcprdinformatic'
+EXEC sp_addrolemember @rolename = 'db_owner', @membername = 'WASHDC\AdmMokrushinVV'
+EXEC sp_addrolemember @rolename = 'db_owner', @membername = 'WASHDC\AdmRameyVL'
+EXEC sp_addrolemember @rolename = 'db_owner', @membername = 'WASHDC\AdmZollerMJ'
+EXEC sp_addrolemember @rolename = 'db_owner', @membername = 'WASHDC\BurkhartMG'
+EXEC sp_addrolemember @rolename = 'db_owner', @membername = 'WASHDC\hr_dev_sql_eaps_admins'
+EXEC sp_addrolemember @rolename = 'db_owner', @membername = 'WASHDC\HR_PRD__BTS_Admins'
+EXEC sp_addrolemember @rolename = 'db_owner', @membername = 'WASHDC\hr_prd_sql_eaps_admins'
+EXEC sp_addrolemember @rolename = 'db_owner', @membername = 'WASHDC\hreesvcdeveaps'
+EXEC sp_addrolemember @rolename = 'db_owner', @membername = 'WASHDC\hreesvcprdcaje'
+EXEC sp_addrolemember @rolename = 'db_owner', @membername = 'WASHDC\hreesvcprdcdb'
+EXEC sp_addrolemember @rolename = 'db_owner', @membername = 'WASHDC\hreesvcprdeaps'
+EXEC sp_addrolemember @rolename = 'db_owner', @membername = 'WASHDC\hreesvcprdSQL8'
+EXEC sp_addrolemember @rolename = 'db_owner', @membername = 'WASHDC\HREWSVCPRDCAJE'
+EXEC sp_addrolemember @rolename = 'db_owner', @membername = 'WASHDC\hrewsvcprdeaps'
+EXEC sp_addrolemember @rolename = 'db_owner', @membername = 'WASHDC\HREWSVCPRDSQL2K8'
+EXEC sp_addrolemember @rolename = 'db_owner', @membername = 'WASHDC\hrewsvcprdSQL8'
+EXEC sp_addrolemember @rolename = 'db_owner', @membername = 'WASHDC\hrsvcprdeaps'
+EXEC sp_addrolemember @rolename = 'db_owner', @membername = 'WASHDC\hrsvctsteaps'
+EXEC sp_addrolemember @rolename = 'db_owner', @membername = 'WASHDC\RameyVL'
+EXEC sp_addrolemember @rolename = 'db_owner', @membername = 'WASHDC\TrieuD'
+EXEC sp_addrolemember @rolename = 'db_owner', @membername = 'WASHDC\ZollerMJ'
+ 
+-- [-- OBJECT LEVEL PERMISSIONS --] --
+DENY EXECUTE ON [dbo].[fn_diagramobjects] TO [guest]
+DENY EXECUTE ON [dbo].[sp_alterdiagram] TO [guest]
+DENY EXECUTE ON [dbo].[sp_creatediagram] TO [guest]
+DENY EXECUTE ON [dbo].[sp_dropdiagram] TO [guest]
+DENY EXECUTE ON [dbo].[sp_helpdiagramdefinition] TO [guest]
+DENY EXECUTE ON [dbo].[sp_helpdiagrams] TO [guest]
+DENY EXECUTE ON [dbo].[sp_renamediagram] TO [guest]
+GRANT EXECUTE ON [dbo].[fn_diagramobjects] TO [public]
+GRANT EXECUTE ON [dbo].[sp_alterdiagram] TO [public]
+GRANT EXECUTE ON [dbo].[sp_creatediagram] TO [public]
+GRANT EXECUTE ON [dbo].[sp_dropdiagram] TO [public]
+GRANT EXECUTE ON [dbo].[sp_helpdiagramdefinition] TO [public]
+GRANT EXECUTE ON [dbo].[sp_helpdiagrams] TO [public]
+GRANT EXECUTE ON [dbo].[sp_renamediagram] TO [public]
+ 
+-- [--DB LEVEL PERMISSIONS --] --
+GRANT CONNECT TO [CRC]
+GRANT CONNECT TO [HRPRDDB1216\PRD_SQL_DBA]
+GRANT CONNECT TO [HRPRDDB1216\SQL_Backup]
+GRANT CONNECT TO [ijeuser]
+GRANT CONNECT TO [NSDD38]
+GRANT CONNECT TO [PASSPS]
+GRANT CONNECT TO [PORTUsr]
+GRANT CONNECT TO [tems_evac]
+GRANT CONNECT TO [WASHDC\ADMBrunerCJ]
+GRANT CONNECT TO [WASHDC\AdmMokrushinVV]
+GRANT CONNECT TO [WASHDC\AdmRameyVL]
+GRANT CONNECT TO [WASHDC\AdmZollerMJ]
+GRANT CONNECT TO [WASHDC\BorySA]
+GRANT CONNECT TO [WASHDC\BurkhartMG]
+GRANT CONNECT TO [WASHDC\caotv]
+GRANT CONNECT TO [washdc\chupp]
+GRANT CONNECT TO [WASHDC\hr_dev_sql_eaps_admins]
+GRANT CONNECT TO [WASHDC\HR_EAPS_DEV_Read]
+GRANT CONNECT TO [WASHDC\HR_EE_SQL_ADMINS]
+GRANT CONNECT TO [WASHDC\HR_PRD__BTS_Admins]
+GRANT CONNECT TO [WASHDC\HR_PRD__SQL_EAPS_ADMINS]
+GRANT CONNECT TO [WASHDC\hr_prd_sql_eaps_admins]
+GRANT CONNECT TO [WASHDC\hreesvcdevcaje]
+GRANT CONNECT TO [WASHDC\hreesvcdevcdb]
+GRANT CONNECT TO [WASHDC\hreesvcdeveaps]
+GRANT CONNECT TO [WASHDC\hreesvcprdcaje]
+GRANT CONNECT TO [WASHDC\hreesvcprdcdb]
+GRANT CONNECT TO [WASHDC\hreesvcprdcdblink]
+GRANT CONNECT TO [WASHDC\hreesvcprdeaps]
+GRANT CONNECT TO [WASHDC\hreesvcprdinformatic]
+GRANT CONNECT TO [WASHDC\hreesvcprdoracle]
+GRANT CONNECT TO [WASHDC\hreesvcprdSQL8]
+GRANT CONNECT TO [WASHDC\HREWSVCPRDCAJE]
+GRANT CONNECT TO [WASHDC\hrewsvcprdcdblink]
+GRANT CONNECT TO [WASHDC\hrewsvcprdeaps]
+GRANT CONNECT TO [WASHDC\hrewsvcprdinformatic]
+GRANT CONNECT TO [WASHDC\hrewsvcprdoracle]
+GRANT CONNECT TO [WASHDC\HREWSVCPRDSQL2K8]
+GRANT CONNECT TO [WASHDC\hrewsvcprdSQL8]
+GRANT CONNECT TO [WASHDC\hrsvcprdeaps]
+GRANT CONNECT TO [WASHDC\hrsvctsteaps]
+GRANT CONNECT TO [WASHDC\MaulikD]
+GRANT CONNECT TO [WASHDC\QiS]
+GRANT CONNECT TO [WASHDC\RameyVL]
+GRANT CONNECT TO [WASHDC\SchwierRE]
+GRANT CONNECT TO [WASHDC\ThataiVA]
+GRANT CONNECT TO [WASHDC\TrieuD]
+GRANT CONNECT TO [WASHDC\VermaRK]
+GRANT CONNECT TO [WASHDC\WASHDCODSSVCVMD]
+GRANT CONNECT TO [WASHDC\yeesp]
+GRANT CONNECT TO [WASHDC\ZollerMJ]
+ 
+-- [--DB LEVEL SCHEMA PERMISSIONS --] --
+GRANT VIEW DEFINITION ON SCHEMA::[dbo] TO [WASHDC\SchwierRE]
