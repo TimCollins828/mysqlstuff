@@ -1,0 +1,83 @@
+---------------------------------
+---------------------------------
+--SQL Server XP_RegRead Role
+--1-23-2017 (DAR Project)
+--Tim Collins
+-- HREEWPRDDB1218\PRD
+----------------------------------
+--Note that this account was created as a result of moving SSRS data 
+--sources to use SQL Logins due to "Smart Card" requirement
+----------------------------------
+--//[XP_Regread]//---
+---------------------------
+--Grant Execute back to Public
+--grant exe
+Grant Execute ON xp_regread TO public
+Grant Execute ON xp_Instance_regread TO public
+go
+
+--revoke execute from Public
+Revoke Execute ON xp_regread TO public
+Revoke Execute ON xp_Instance_regread TO public
+go
+
+--Create Role in Master
+use master 
+go
+if not exists (select 1 from sys.database_principals where name='XP_Regread' and Type = 'R')
+Begin
+CREATE Role XP_Regread
+END
+GRANT EXEC ON OBJECT::master.dbo.xp_instance_regread TO XP_Regread;
+GRANT EXEC ON OBJECT::master.dbo.xp_regread TO XP_Regread;
+Go
+
+----------------------------------------------
+--Create Database Users in Master From Logins
+----------------------------------------------
+USE [master]
+GO
+--Read
+if not exists(select * from sys.database_principals where name ='WASHDC\HR_SQL_PRD_CDB_Read')
+BEGIN
+Create user [WASHDC\HR_SQL_PRD_CDB_Read] for Login [WASHDC\HR_SQL_PRD_CDB_Read] 
+End
+--Modify
+if not exists(select * from sys.database_principals where name ='WASHDC\HR_SQL_PRD_CDB_Modify')
+BEGIN
+Create user [WASHDC\HR_SQL_PRD_CDB_Modify] for Login [WASHDC\HR_SQL_PRD_CDB_Modify] 
+End
+--View Def
+if not exists(select * from sys.database_principals where name ='WASHDC\HR_SQL_PRD_CDB_ViewDef')
+BEGIN
+Create user [WASHDC\HR_SQL_PRD_CDB_ViewDef] for Login [WASHDC\HR_SQL_PRD_CDB_ViewDef] 
+End
+--Execute
+if not exists(select * from sys.database_principals where name ='WASHDC\HR_SQL_PRD_CDB_Execute')
+BEGIN
+Create user [WASHDC\HR_SQL_PRD_CDB_Execute] for Login [WASHDC\HR_SQL_PRD_CDB_Execute] 
+End
+-----------------------------
+--Grant DB Users Connect
+-----------------------------
+Grant Connect TO [WASHDC\HR_SQL_PRD_CDB_Read]
+Grant Connect TO [WASHDC\HR_SQL_PRD_CDB_Modify]
+Grant Connect TO [WASHDC\HR_SQL_PRD_CDB_ViewDef]
+Grant Connect TO [WASHDC\HR_SQL_PRD_CDB_Execute]
+--------------
+--Grant Role
+--------------
+EXEC sp_addrolemember 'XP_Regread', 'WASHDC\HR_SQL_PRD_CDB_Read'
+ Alter user [WASHDC\HR_SQL_PRD_CDB_Read] WITH DEFAULT_SCHEMA = dbo 
+ --
+ EXEC sp_addrolemember 'XP_Regread', 'WASHDC\HR_SQL_PRD_CDB_Modify'
+ Alter user [WASHDC\HR_SQL_PRD_CDB_Modify] WITH DEFAULT_SCHEMA = dbo
+ --
+ EXEC sp_addrolemember 'XP_Regread', 'WASHDC\HR_SQL_PRD_CDB_ViewDef'
+ Alter user [WASHDC\HR_SQL_PRD_CDB_ViewDef] WITH DEFAULT_SCHEMA = dbo
+
+  EXEC sp_addrolemember 'XP_Regread', 'WASHDC\HR_SQL_PRD_CDB_Execute'
+ Alter user [WASHDC\HR_SQL_PRD_CDB_Execute] WITH DEFAULT_SCHEMA = dbo
+-------------
+--End Script
+-------------

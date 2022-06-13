@@ -1,0 +1,50 @@
+---------------------------------
+---------------------------------
+--SQL Server EAPS Role
+--02\16\2018
+--Jeffrey Ayoub created for PRD ESSR 49714 
+--HREEWPRDDB1218\PRD
+----------------------------------
+--For Update Notes--
+----------------------------------
+--//Role [CDB_FTP_EAPS]//---
+--This role will allow the EAPS Service
+--account to truncate Gems Tables
+----------------------------------
+
+Use Eaps
+Go
+
+--Drop role if Exists
+if exists (select 1 from sys.database_principals where name='CDB_FTP_EAPS' and Type = 'R')
+Begin
+Drop Role CDB_FTP_EAPS
+END
+--Create Role and Grant Permisisons to GEMS Tables
+if not exists (select 1 from sys.database_principals where name='CDB_FTP_EAPS' and Type = 'R')
+Begin
+Create Role CDB_FTP_EAPS
+END
+--Grant permissions
+Grant ALTER on dbo.GEMS_EMP TO CDB_FTP_EAPS;
+Grant ALTER on GEMS_ORG TO CDB_FTP_EAPS;
+Grant ALTER on GEMS_HLADDRESS TO CDB_FTP_EAPS;
+Grant ALTER on GEMS_SGID TO CDB_FTP_EAPS;
+Grant ALTER on GEMS_TRAVELINFO TO CDB_FTP_EAPS;
+Grant ALTER on GEMS_GAL TO CDB_FTP_EAPS;
+Grant ALTER on GEMS_CLEARANCE TO CDB_FTP_EAPS;
+Grant ALTER on GEMS_EMAIL TO CDB_FTP_EAPS;
+Grant ALTER on GEMS_IP06 TO CDB_FTP_EAPS;
+Grant ALTER on GEMS_BMA TO CDB_FTP_EAPS;
+Grant ALTER on GEMS_TM TO CDB_FTP_EAPS;
+Grant ALTER on GEMS_LOCATION TO CDB_FTP_EAPS;
+Grant ALTER on GEMS_EMAIL_TEMP TO CDB_FTP_EAPS;
+Grant ALTER on GEMS_POS TO CDB_FTP_EAPS;
+
+--Grant Role to EAPS Service Account
+Alter Role [CDB_FTP_EAPS] ADD MEMBER [WASHDC\HR_SQL_PRD_SVC_ACCT] 
+--------------
+--End Script
+--------------
+
+

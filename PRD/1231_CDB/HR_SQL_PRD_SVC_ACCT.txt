@@ -1,0 +1,44 @@
+---------------------------------
+---------------------------------
+--SQL Server Service account for HREESVCEAPS
+--1-12-2017 (DAR Project)
+--Tim Collins
+--HREWWPRDDB1231\CDB
+----------------------------------
+--Updated 11/30/2017 Get rid of role added to DBO per 
+--Security Guidlines - TC
+----------------------------------
+--Updated 12/07/2017 MSR 41686 OPS
+--Adding this AD account to the instance
+--so that hreesvcprdeaps will have access to the instance
+--------------------------------------
+--//[HR_SQL_PRD_HREESVCTSTEAPS]//---
+---------------------------
+--Create Login
+USE [master]
+GO
+if not exists(select * from sys.server_principals where name = 'WASHDC\HR_SQL_PRD_SVC_ACCT')
+Begin
+CREATE LOGIN [WASHDC\HR_SQL_PRD_SVC_ACCT] FROM WINDOWS WITH DEFAULT_DATABASE=[master], DEFAULT_LANGUAGE=[us_english]
+End
+
+--GRANT PERMISSIONS
+EXEC master..sp_MSForeachdb
+ @command1='IF ''?''
+IN (''PASSANALYSIS'',''PASSPS'', ''MessageQueue'', ''PASSISIS'')
+BEGIN
+Use [?]
+--Drop User
+if exists(select * from sys.database_principals where name =''WASHDC\HR_SQL_PRD_SVC_ACCT'')
+BEGIN
+Drop user [WASHDC\HR_SQL_PRD_SVC_ACCT]
+END
+
+--create user
+Create user [WASHDC\HR_SQL_PRD_SVC_ACCT] for Login [WASHDC\HR_SQL_PRD_SVC_ACCT] WITH DEFAULT_SCHEMA = dbo 
+Grant Connect to [WASHDC\HR_SQL_PRD_SVC_ACCT]
+EXEC sp_addrolemember ''db_owner'', ''WASHDC\HR_SQL_PRD_SVC_ACCT''
+
+END'
+
+

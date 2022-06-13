@@ -1,0 +1,95 @@
+---------------------------------
+---------------------------------
+--SQL Server XP_RegRead Role
+--2-2-2017 (DAR Project)
+--Tim Collins
+-- HREEWPRDDB1217\KFX_PRD
+----------------------------------
+--Note that this account was created as a result of moving SSRS data 
+--sources to use SQL Logins due to "Smart Card" requirement
+----------------------------------
+--//[XP_Regread]//---
+---------------------------
+--Grant Execute back to Public
+--grant exe
+Grant Execute ON xp_regread TO public
+Grant Execute ON xp_Instance_regread TO public
+go
+
+--revoke execute from Public
+Revoke Execute ON xp_regread TO public
+Revoke Execute ON xp_Instance_regread TO public
+go
+
+--Create Role in Master
+use master 
+go
+if not exists (select 1 from sys.database_principals where name='XP_Regread' and Type = 'R')
+Begin
+CREATE Role XP_Regread
+END
+GRANT EXEC ON OBJECT::master.dbo.xp_instance_regread TO XP_Regread;
+GRANT EXEC ON OBJECT::master.dbo.xp_regread TO XP_Regread;
+Go
+
+---------------------------------------------------------------
+--Create Database Users in Master From Logins
+---------------------------------------------------------------
+USE [master]
+GO
+
+--Read
+--JA 12-27-2017 Commented Out ESSR 48980
+------------------------------------------
+--if not exists(select * from sys.database_principals where name ='WASHDC\HR_SQL_PRD_Kofax_Read')
+--BEGIN
+--Create user [WASHDC\HR_SQL_PRD_Kofax_Read] for Login [WASHDC\HR_SQL_PRD_Kofax_Read] 
+--End
+-----------------------------------------------
+--Modify
+if not exists(select * from sys.database_principals where name ='WASHDC\HR_SQL_PRD_Kofax_Modify')
+BEGIN
+Create user [WASHDC\HR_SQL_PRD_Kofax_Modify] for Login [WASHDC\HR_SQL_PRD_Kofax_Modify] 
+End
+
+
+--View Def
+if not exists(select * from sys.database_principals where name ='WASHDC\HR_SQL_PRD_Kofax_ViewDef')
+BEGIN
+Create user [WASHDC\HR_SQL_PRD_Kofax_ViewDef] for Login [WASHDC\HR_SQL_PRD_Kofax_ViewDef] 
+End
+
+
+--Execute
+if not exists(select * from sys.database_principals where name ='WASHDC\HR_SQL_PRD_Kofax_Execute')
+BEGIN
+Create user [WASHDC\HR_SQL_PRD_Kofax_Execute] for Login [WASHDC\HR_SQL_PRD_Kofax_Execute] 
+End
+-----------------------------
+--Grant DB Users Connect
+-----------------------------
+--JA 12-27-2017 Commented Out ESSR 48980
+--Grant Connect TO [WASHDC\HR_SQL_PRD_Kofax_Read]
+
+Grant Connect TO [WASHDC\HR_SQL_PRD_Kofax_Modify]
+Grant Connect TO [WASHDC\HR_SQL_PRD_Kofax_ViewDef]
+Grant Connect TO [WASHDC\HR_SQL_PRD_Kofax_Execute]
+---------------------------------------
+--Grant Role
+----------------------------------------
+
+--JA 12-27-2017 Commented Out ESSR 48980
+--EXEC sp_addrolemember 'XP_Regread', 'WASHDC\HR_SQL_PRD_Kofax_Read'
+-- Alter user [WASHDC\HR_SQL_PRD_Kofax_Read] WITH DEFAULT_SCHEMA = dbo 
+ -----------------------------------------------------------------------------
+ EXEC sp_addrolemember 'XP_Regread', 'WASHDC\HR_SQL_PRD_Kofax_Modify'
+ Alter user [WASHDC\HR_SQL_PRD_Kofax_Modify] WITH DEFAULT_SCHEMA = dbo
+ --
+ EXEC sp_addrolemember 'XP_Regread', 'WASHDC\HR_SQL_PRD_Kofax_ViewDef'
+ Alter user [WASHDC\HR_SQL_PRD_Kofax_ViewDef] WITH DEFAULT_SCHEMA = dbo
+
+  EXEC sp_addrolemember 'XP_Regread', 'WASHDC\HR_SQL_PRD_Kofax_Execute'
+ Alter user [WASHDC\HR_SQL_PRD_Kofax_Execute] WITH DEFAULT_SCHEMA = dbo
+-------------------------------------------------------------------------------------------------------------------
+--End Script
+-------------------------------------------------------------------------------------------------------------------

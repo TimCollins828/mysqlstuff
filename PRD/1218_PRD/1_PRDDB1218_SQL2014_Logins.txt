@@ -1,0 +1,473 @@
+---------------------------------
+---------------------------------
+--PRD SQL Server Roles
+--1-23-2017 (DAR Project)
+--Tim Collins
+----------------------------------
+--HREEWPRDDB1218\PRD
+----------------------------------
+--//HR_SQL_PRD_Read//---
+--CREATE LOGIN
+-------------------------------------
+USE [master]
+GO
+if not exists(select * from sys.server_principals where name = 'WASHDC\HR_SQL_PRD_Read')
+Begin
+CREATE LOGIN [WASHDC\HR_SQL_PRD_Read] FROM WINDOWS WITH DEFAULT_DATABASE=[master], DEFAULT_LANGUAGE=[us_english]
+END
+GO
+--GRANT PERMISSIONS
+EXEC master..sp_MSForeachdb '
+USE [?]
+IF ''?'' <> ''master'' AND ''?'' <> ''model'' AND ''?'' <> ''tempdb''
+BEGIN
+EXEC sp_addrolemember ''db_datareader'', ''WASHDC\HR_SQL_PRD_Read''
+Alter user [WASHDC\HR_SQL_PRD_Read] WITH DEFAULT_SCHEMA = dbo 
+END'
+
+EXEC master..sp_MSForeachdb '
+USE [?]
+IF ''?'' <> ''master'' AND ''?'' <> ''model'' AND ''?'' <> ''tempdb''
+BEGIN
+	Grant CONNECT To [WASHDC\HR_SQL_PRD_Read] 
+END'
+
+---------------------------------
+--//HR_SQL_PRD_Write//--
+---------------------------------------------
+--JA 12-27-2017 Commented Out ESSR 48980
+---------------------------------------------
+/*
+--CREATE LOGIN
+USE [master]
+GO
+if not exists(select * from sys.server_principals where name = 'WASHDC\HR_SQL_PRD_Write')
+Begin
+CREATE LOGIN [WASHDC\HR_SQL_PRD_Write] FROM WINDOWS WITH DEFAULT_DATABASE=[master], DEFAULT_LANGUAGE=[us_english]
+END
+GO
+--GRANT PERMISSIONS
+EXEC master..sp_MSForeachdb '
+USE [?]
+IF ''?'' <> ''master'' AND ''?'' <> ''model'' AND ''?'' <> ''msdb'' AND ''?'' <> ''tempdb''
+BEGIN
+EXEC sp_addrolemember ''db_datareader'', ''WASHDC\HR_SQL_PRD_Write''
+EXEC sp_addrolemember ''db_datawriter'', ''WASHDC\HR_SQL_PRD_Write''
+Grant CONNECT To [WASHDC\HR_SQL_PRD_Write] 
+Alter user [WASHDC\HR_SQL_PRD_Write] WITH DEFAULT_SCHEMA = dbo 
+END'
+
+use MSDB
+go
+
+Grant connect to [WASHDC\HR_SQL_PRD_Write];
+EXEC sp_addrolemember 'db_dataReader', 'WASHDC\HR_SQL_PRD_Write';
+go
+*/
+--------------------------
+--//HR_SQL_PRD_Modify//--
+--------------------------------------------------------------------------------------------
+--JA MSR 47079, 10-10-2017 - Replaced with a new version of the PRD_Mofify script to support
+--the FSI_XML_Generate job.  
+-------------------------------------------------------------------------------------------
+--JA 12-27-2017 Commented Out ESSR 48980
+--------------------------------------------------
+/*
+--Create LOGIN
+USE [master]
+GO
+if not exists(select * from sys.server_principals where name = 'WASHDC\HR_SQL_PRD_Eaps_Modify')
+Begin
+CREATE LOGIN [WASHDC\HR_SQL_PRD_Eaps_Modify] FROM WINDOWS WITH DEFAULT_DATABASE=[master], DEFAULT_LANGUAGE=[us_english]
+END
+GO
+
+
+--GRANT Permissions
+Use [Eaps]
+go
+if exists(select * from sys.database_principals where name = 'WASHDC\HR_SQL_PRD_Eaps_Modify')
+Begin
+Drop user [WASHDC\HR_SQL_PRD_Eaps_Modify] 
+END
+Create user [WASHDC\HR_SQL_PRD_EAPS_Modify] for Login [WASHDC\HR_SQL_PRD_EAPS_Modify] with default_schema = dbo;
+
+ EXEC sp_addrolemember 'db_ddladmin', 'WASHDC\HR_SQL_PRD_Eaps_Modify'
+ EXEC sp_addrolemember 'db_datawriter', 'WASHDC\HR_SQL_PRD_EAPS_Modify'
+  EXEC sp_addrolemember 'db_datareader', 'WASHDC\HR_SQL_PRD_Eaps_Modify'
+
+  --Create Role
+if not exists (select 1 from sys.database_principals where name='EAPS_EXECUTE_Role' and Type = 'R')
+Begin
+CREATE Role EAPS_EXECUTE_Role
+END
+Grant CONNECT, CHECKPOINT, CREATE AGGREGATE, CREATE DEFAULT, CREATE FUNCTION, CREATE PROCEDURE, 
+CREATE QUEUE, CREATE RULE, CREATE SYNONYM, CREATE TABLE, CREATE TYPE, 
+CREATE VIEW, CREATE XML SCHEMA COLLECTION, REFERENCES, alter any assembly, ALTER ANY DATABASE DDL TRIGGER, 
+DELETE, Insert, References, Select, Update
+to [EAPS_EXECUTE_Role]
+---
+	Grant Exec ON Schema::dbo TO [EAPS_EXECUTE_Role]
+	Grant Connect TO [EAPS_EXECUTE_Role]
+
+Alter Role [EAPS_EXECUTE_Role] ADD MEMBER [WASHDC\HR_SQL_PRD_Eaps_Modify]
+
+use MSDB
+go
+
+Grant connect to [WASHDC\HR_SQL_PRD_EAPS_Modify];
+EXEC sp_addrolemember 'db_dataReader', 'WASHDC\HR_SQL_PRD_EAPS_Modify';
+go
+*/
+-----------------------------------------------
+--//HR_SQL_PRD_DBO//--
+------------------------------------------------
+--JA 12-27-2017 Commented Out ESSR 48980
+--------------------------------------------------
+/*
+--CREATE LOGIN
+USE [master]
+GO
+if not exists(select * from sys.server_principals where name = 'WASHDC\HR_SQL_PRD_Dbo')
+Begin
+CREATE LOGIN [WASHDC\HR_SQL_PRD_Dbo] FROM WINDOWS WITH DEFAULT_DATABASE=[master], DEFAULT_LANGUAGE=[us_english]
+END
+GO
+--GRANT PERMISSIONS
+EXEC master..sp_MSForeachdb '
+USE [?]
+IF ''?'' <> ''master'' AND ''?'' <> ''model'' AND ''?'' <> ''msdb'' AND ''?'' <> ''tempdb''
+BEGIN
+EXEC sp_addrolemember ''db_owner'', ''WASHDC\HR_SQL_PRD_Dbo''
+Grant CONNECT To [WASHDC\HR_SQL_PRD_Dbo] 
+Alter user [WASHDC\HR_SQL_PRD_Dbo] WITH DEFAULT_SCHEMA = dbo 
+END'
+
+use MSDB
+go
+
+Grant connect to [WASHDC\HR_SQL_PRD_Dbo];
+EXEC sp_addrolemember 'db_dataReader', 'WASHDC\HR_SQL_PRD_Dbo';
+go
+*/
+------------------------------------------
+--//HR_SQL_PRD_Execute//--
+-----------------------------------------
+--JA 12-27-2017 Commented Out ESSR 48980
+-----------------------------------------
+/*
+--CREATE LOGIN
+USE [master]
+GO
+if not exists(select * from sys.server_principals where name = 'WASHDC\HR_SQL_PRD_Execute')
+Begin
+CREATE LOGIN [WASHDC\HR_SQL_PRD_Execute] FROM WINDOWS WITH DEFAULT_DATABASE=[master], DEFAULT_LANGUAGE=[us_english]
+END
+GO
+--GRANT PERMISSIONS
+EXEC master..sp_MSForeachdb '
+USE [?]
+IF ''?'' <> ''master'' AND ''?'' <> ''model'' AND ''?'' <> ''msdb'' AND ''?'' <> ''tempdb''
+BEGIN
+	Grant execute, connect
+ To [WASHDC\HR_SQL_PRD_Execute] 
+ Alter user [WASHDC\HR_SQL_PRD_Execute] WITH DEFAULT_SCHEMA = dbo 
+END'
+*/
+---------------------------------
+--//HR_SQL_PRD_ViewDef//--
+--------------------------------
+--CREATE LOGIN
+USE [master]
+GO
+if not exists(select * from sys.server_principals where name = 'WASHDC\HR_SQL_PRD_ViewDef')
+Begin
+CREATE LOGIN [WASHDC\HR_SQL_PRD_ViewDef] FROM WINDOWS WITH DEFAULT_DATABASE=[master], DEFAULT_LANGUAGE=[us_english]
+End
+GO
+--GRANT PERMISSIONS
+EXEC master..sp_MSForeachdb '
+USE [?]
+IF ''?'' <> ''master'' AND ''?'' <> ''model'' AND ''?'' <> ''msdb'' AND ''?'' <> ''tempdb''
+BEGIN
+	Grant view definition, connect
+ To [WASHDC\HR_SQL_PRD_ViewDef] 
+ Alter user [WASHDC\HR_SQL_PRD_ViewDef] WITH DEFAULT_SCHEMA = dbo 
+END'
+-----------------------
+--//HR_SQL_PRD_Admin//-----
+--------------------------
+--CREATE LOGIN
+USE [master]
+GO
+if not exists(select * from sys.server_principals where name = 'WASHDC\HR_SQL_PRD_Admin')
+Begin
+CREATE LOGIN [WASHDC\HR_SQL_PRD_Admin] FROM WINDOWS WITH DEFAULT_DATABASE=[master], DEFAULT_LANGUAGE=[us_english]
+END
+GO
+--GRANT PERMISSIONS
+EXEC master..sp_MSForeachdb '
+USE [?] EXEC sp_addrolemember ''db_owner'', ''WASHDC\HR_SQL_PRD_Admin''
+Grant Connect to [WASHDC\HR_SQL_PRD_Admin]
+Alter user [WASHDC\HR_SQL_PRD_Admin] WITH DEFAULT_SCHEMA = dbo 
+'
+EXEC sp_addsrvrolemember 'WASHDC\HR_SQL_PRD_Admin', 'sysadmin'
+
+------------------------------------------
+--//Add READ to SQL Agent role in MSDB//--
+------------------------------------------
+--use msdb---------------------------------
+---------------------------------
+--PRD SQL Server Roles
+--1-23-2017 (DAR Project)
+--Tim Collins
+-------------------------------------------------------
+--New Server Principals for PRD Access
+-------------------------------------------------------
+--HR_SQL_PRD_EAPS_READ
+USE [master]
+GO
+if not exists(select * from sys.server_principals where name = 'WASHDC\HR_SQL_PRD_EAPS_READ')
+Begin
+CREATE LOGIN [WASHDC\HR_SQL_PRD_EAPS_READ] FROM WINDOWS WITH DEFAULT_DATABASE=[master], DEFAULT_LANGUAGE=[us_english]
+END
+GO
+--GRANT PERMISSIONS
+Use EAPS
+go
+
+Grant Connect to [WASHDC\HR_SQL_PRD_EAPS_READ]
+EXEC sp_addrolemember 'db_datareader', 'WASHDC\HR_SQL_PRD_EAPS_READ'
+Alter user [WASHDC\HR_SQL_PRD_EAPS_READ] WITH DEFAULT_SCHEMA = dbo 
+
+use MSDB
+go
+
+Grant connect to [WASHDC\HR_SQL_PRD_EAPS_READ];
+EXEC sp_addrolemember 'db_dataReader', 'WASHDC\HR_SQL_PRD_EAPS_READ';
+go
+-----
+---------------------------------------------------------
+--HR_SQL_PRD_EAPS_ViewDef
+---------------------------------------------------------
+--JA 12-27-2017 Commented Out ESSR 48980
+-----------------------------------------------
+/*
+USE [master]
+GO
+if not exists(select * from sys.server_principals where name = 'WASHDC\HR_SQL_PRD_EAPS_ViewDef')
+Begin
+CREATE LOGIN [WASHDC\HR_SQL_PRD_EAPS_ViewDef] FROM WINDOWS WITH DEFAULT_DATABASE=[master], DEFAULT_LANGUAGE=[us_english]
+END
+GO
+--GRANT PERMISSIONS
+Use EAPS
+go
+
+Grant Connect, View Definition to [WASHDC\HR_SQL_PRD_EAPS_ViewDef]
+Alter user [WASHDC\HR_SQL_PRD_EAPS_ViewDef] WITH DEFAULT_SCHEMA = dbo 
+*/
+---------------------------
+--HR_SQL_PRD_EAPS_Modify
+---------------------------
+--Create LOGIN
+USE [master]
+GO
+if not exists(select * from sys.server_principals where name = 'WASHDC\HR_SQL_PRD_EAPS_Modify')
+Begin
+CREATE LOGIN [WASHDC\HR_SQL_PRD_EAPS_Modify] FROM WINDOWS WITH DEFAULT_DATABASE=[master], DEFAULT_LANGUAGE=[us_english]
+END
+GO
+--GRANT Permissions
+Use Eaps
+go
+
+Grant CONNECT, CHECKPOINT, CREATE AGGREGATE, CREATE DEFAULT, CREATE FUNCTION, CREATE PROCEDURE, 
+CREATE QUEUE, CREATE RULE, CREATE SYNONYM, CREATE TABLE, CREATE TYPE, 
+CREATE VIEW, CREATE XML SCHEMA COLLECTION, REFERENCES, alter any assembly, ALTER ANY DATABASE DDL TRIGGER, 
+DELETE, Insert, References, Select, Update
+to [WASHDC\HR_SQL_PRD_EAPS_Modify]
+
+EXEC sp_addrolemember 'db_datawriter', 'WASHDC\HR_SQL_PRD_EAPS_Modify'
+EXEC sp_addrolemember 'db_datareader', 'WASHDC\HR_SQL_PRD_EAPS_Modify'
+Alter user [WASHDC\HR_SQL_PRD_EAPS_Modify] WITH DEFAULT_SCHEMA = dbo 
+
+--
+use MSDB
+go
+
+Grant connect to [WASHDC\HR_SQL_PRD_EAPS_Modify];
+EXEC sp_addrolemember 'db_dataReader', 'WASHDC\HR_SQL_PRD_EAPS_Modify';
+go
+-----
+-------------------------------------------------------------
+--HR_SQL_PRD_Caje_Modify
+------------------------------------------------------------
+--JA 12-27-2017 commented out ESSR 48980
+-----------------------------------------------------------
+/*
+--Create LOGIN
+USE [master]
+GO
+if not exists(select * from sys.server_principals where name = 'WASHDC\HR_SQL_PRD_Caje_Modify')
+Begin
+CREATE LOGIN [WASHDC\HR_SQL_PRD_Caje_Modify] FROM WINDOWS WITH DEFAULT_DATABASE=[master], DEFAULT_LANGUAGE=[us_english]
+END
+GO
+--GRANT Permissions
+Use Caje
+go
+
+Grant CONNECT, CHECKPOINT, CREATE AGGREGATE, CREATE DEFAULT, CREATE FUNCTION, CREATE PROCEDURE, 
+CREATE QUEUE, CREATE RULE, CREATE SYNONYM, CREATE TABLE, CREATE TYPE, 
+CREATE VIEW, CREATE XML SCHEMA COLLECTION, REFERENCES, alter any assembly, ALTER ANY DATABASE DDL TRIGGER, 
+DELETE, Insert, References, Select, Update
+to [WASHDC\HR_SQL_PRD_Caje_Modify]
+
+EXEC sp_addrolemember 'db_datawriter', 'WASHDC\HR_SQL_PRD_Caje_Modify'
+EXEC sp_addrolemember 'db_datareader', 'WASHDC\HR_SQL_PRD_Caje_Modify'
+Alter user [WASHDC\HR_SQL_PRD_Caje_Modify] WITH DEFAULT_SCHEMA = dbo 
+
+use MSDB
+go
+
+Grant connect to [WASHDC\HR_SQL_PRD_Caje_Modify];
+EXEC sp_addrolemember 'db_dataReader', 'WASHDC\HR_SQL_PRD_Caje_Modify';
+go
+*/
+----------------------
+--HR_SQL_PRD_EAPS_Dbo
+----------------------
+--CREATE LOGIN
+USE [master]
+GO
+if not exists(select * from sys.server_principals where name = 'WASHDC\HR_SQL_PRD_EAPS_Dbo')
+Begin
+CREATE LOGIN [WASHDC\HR_SQL_PRD_EAPS_Dbo] FROM WINDOWS WITH DEFAULT_DATABASE=[master], DEFAULT_LANGUAGE=[us_english]
+END
+GO
+--GRANT PERMISSIONS
+USE EAPS
+go
+
+EXEC sp_addrolemember 'db_owner', 'WASHDC\HR_SQL_PRD_EAPS_Dbo'
+Grant CONNECT To [WASHDC\HR_SQL_PRD_EAPS_Dbo] 
+Alter user [WASHDC\HR_SQL_PRD_EAPS_Dbo] WITH DEFAULT_SCHEMA = dbo 
+
+use MSDB
+go
+
+Grant connect to [washdc\HR_SQL_PRD_EAPS_Dbo];
+EXEC sp_addrolemember 'db_dataReader', 'washdc\HR_SQL_PRD_EAPS_Dbo';
+go
+
+------------------------------------------
+--//Add READ to SQL Agent role in MSDB//--
+------------------------------------------
+use msdb
+go
+
+if not exists(select * from sys.DATABASE_principals where name = 'WASHDC\HR_SQL_PRD_Read')
+	Begin
+	CREATE USER [WASHDC\HR_SQL_PRD_Read] FOR LOGIN [WASHDC\HR_SQL_PRD_Read];
+	END
+
+Alter Role [SQLAgentReaderRole] ADD MEMBER [WASHDC\HR_SQL_PRD_Read]
+
+
+-----------------------------------------------------------------------------------------------
+--//Add login washdc\HR_SQL_PRD_EAPS_ARCHIVE_READ, Read to EAPS_Archive -45228 jeff 03-14-2017
+-----------------------------------------------------------------------------------------------
+--JA 12-27-2017 Commented out ESSR 48980
+/*
+--CREATE LOGIN
+USE [master]
+GO
+if not exists(select * from sys.server_principals where name = 'washdc\HR_SQL_PRD_EAPS_ARCHIVE_READ')
+Begin
+CREATE LOGIN [washdc\HR_SQL_PRD_EAPS_ARCHIVE_READ] FROM WINDOWS WITH DEFAULT_DATABASE=[master], DEFAULT_LANGUAGE=[us_english]
+END
+GO
+
+--Create User in EAPS_Archive
+use [EAPS_Archive]
+go
+if not exists(select * from sys.DATABASE_principals where name = 'washdc\HR_SQL_PRD_EAPS_ARCHIVE_READ')
+
+Begin
+CREATE USER [washdc\HR_SQL_PRD_EAPS_ARCHIVE_READ] FOR LOGIN [washdc\HR_SQL_PRD_EAPS_ARCHIVE_READ] WITH DEFAULT_SCHEMA=[dbo];
+
+END
+
+--GRANT PERMISSIONS
+USE EAPS_Archive
+go
+
+EXEC sp_addrolemember 'db_datareader', 'washdc\HR_SQL_PRD_EAPS_ARCHIVE_READ'
+Grant CONNECT To [washdc\HR_SQL_PRD_EAPS_ARCHIVE_READ] 
+
+use MSDB
+go
+
+Grant connect to [washdc\HR_SQL_PRD_EAPS_ARCHIVE_READ];
+EXEC sp_addrolemember 'db_dataReader', 'washdc\HR_SQL_PRD_EAPS_ARCHIVE_READ';
+go
+
+*/
+
+
+--Alter user [WASHDC\HR_SQL_PRD_EAPS_Dbo] WITH DEFAULT_SCHEMA = dbo 
+---------------
+--TC 08-22-2017
+--08-22-2017
+--HR_SQL_PRD_EAPS_Modify
+--Create LOGIN
+USE [master]
+GO
+if not exists(select * from sys.server_principals where name = 'WASHDC\HR_SQL_PRD_Eaps_Modify')
+Begin
+CREATE LOGIN [WASHDC\HR_SQL_PRD_Eaps_Modify] FROM WINDOWS WITH DEFAULT_DATABASE=[master], DEFAULT_LANGUAGE=[us_english]
+END
+GO
+
+
+--GRANT Permissions
+Use [Eaps]
+go
+if exists(select * from sys.database_principals where name = 'WASHDC\HR_SQL_PRD_Eaps_Modify')
+Begin
+Drop user [WASHDC\HR_SQL_PRD_Eaps_Modify] 
+END
+Create user [WASHDC\HR_SQL_PRD_EAPS_Modify] for Login [WASHDC\HR_SQL_PRD_EAPS_Modify] with default_schema = dbo;
+
+ EXEC sp_addrolemember 'db_ddladmin', 'WASHDC\HR_SQL_PRD_Eaps_Modify'
+ EXEC sp_addrolemember 'db_datawriter', 'WASHDC\HR_SQL_PRD_EAPS_Modify'
+  EXEC sp_addrolemember 'db_datareader', 'WASHDC\HR_SQL_PRD_Eaps_Modify'
+
+  --Create Role
+if not exists (select 1 from sys.database_principals where name='EAPS_EXECUTE_Role' and Type = 'R')
+Begin
+CREATE Role EAPS_EXECUTE_Role
+END
+Grant CONNECT, CHECKPOINT, CREATE AGGREGATE, CREATE DEFAULT, CREATE FUNCTION, CREATE PROCEDURE, 
+CREATE QUEUE, CREATE RULE, CREATE SYNONYM, CREATE TABLE, CREATE TYPE, 
+CREATE VIEW, CREATE XML SCHEMA COLLECTION, REFERENCES, alter any assembly, ALTER ANY DATABASE DDL TRIGGER, 
+DELETE, Insert, References, Select, Update
+to [EAPS_EXECUTE_Role]
+---
+	Grant Exec ON Schema::dbo TO [EAPS_EXECUTE_Role]
+	Grant Connect TO [EAPS_EXECUTE_Role]
+
+Alter Role [EAPS_EXECUTE_Role] ADD MEMBER [WASHDC\HR_SQL_PRD_Eaps_Modify]
+
+use MSDB
+go
+
+Grant connect to [WASHDC\HR_SQL_PRD_EAPS_Modify];
+EXEC sp_addrolemember 'db_dataReader', 'WASHDC\HR_SQL_PRD_EAPS_Modify';
+go
+--End
+
+-----------------------
+--End Script
+-----------------------

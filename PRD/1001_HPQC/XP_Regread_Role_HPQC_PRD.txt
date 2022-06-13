@@ -1,0 +1,85 @@
+---------------------------------
+---------------------------------
+--SQL Server XP_RegRead Role
+--12-21-2016 (DAR Project)
+--Tim Collins
+-- HREWWINFDB1001\HPQC_PRD
+---------------------------------------------------------------------------
+--Note that this account was created as a result of moving SSRS data 
+--sources to use SQL Logins due to "Smart Card" requirement
+--------------------------------------------------------------------------
+--//[XP_Regread]//---
+---------------------------
+/*
+--Grant Execute back to Public
+--grant exe
+Grant Execute ON xp_regread TO public
+Grant Execute ON xp_Instance_regread TO public
+go
+
+--revoke execute from Public
+Revoke Execute ON xp_regread TO public
+Revoke Execute ON xp_Instance_regread TO public
+go
+
+--Create Role in Master
+use master 
+go
+if not exists (select 1 from sys.database_principals where name='XP_Regread' and Type = 'R')
+Begin
+CREATE Role XP_Regread
+END
+GRANT EXEC ON OBJECT::master.dbo.xp_instance_regread TO XP_Regread;
+GRANT EXEC ON OBJECT::master.dbo.xp_regread TO XP_Regread;
+Go
+
+-----------------------------------------------------------------------
+--Create Database Users in Master From Logins
+-----------------------------------------------------------------------
+USE [master]
+GO
+--Read
+if not exists(select * from sys.database_principals where name ='WASHDC\HR_SQL_PRD_HPQC_Read')
+BEGIN
+Create user [WASHDC\HR_SQL_PRD_HPQC_Read] for Login [WASHDC\HR_SQL_PRD_HPQC_Read] 
+End
+--Modify
+if not exists(select * from sys.database_principals where name ='WASHDC\HR_SQL_PRD_HPQC_Modify')
+BEGIN
+Create user [WASHDC\HR_SQL_PRD_HPQC_Modify] for Login [WASHDC\HR_SQL_PRD_HPQC_Modify] 
+End
+--View Def
+if not exists(select * from sys.database_principals where name ='WASHDC\HR_SQL_PRD_HPQC_ViewDef')
+BEGIN
+Create user [WASHDC\HR_SQL_PRD_HPQC_ViewDef] for Login [WASHDC\HR_SQL_PRD_HPQC_ViewDef] 
+End
+--Execute
+if not exists(select * from sys.database_principals where name ='WASHDC\HR_SQL_PRD_HPQC_Execute')
+BEGIN
+Create user [WASHDC\HR_SQL_PRD_HPQC_Execute] for Login [WASHDC\HR_SQL_PRD_HPQC_Execute] 
+End
+-----------------------------------------------------------------------------------------
+--Grant DB Users Connect
+----------------------------------------------------------------------------------------
+Grant Connect TO [WASHDC\HR_SQL_PRD_HPQC_Read]
+Grant Connect TO [WASHDC\HR_SQL_PRD_HPQC_Modify]
+Grant Connect TO [WASHDC\HR_SQL_PRD_HPQC_ViewDef]
+Grant Connect TO [WASHDC\HR_SQL_PRD_HPQC_Execute]
+-------------------
+--Grant Role
+-------------------
+EXEC sp_addrolemember 'XP_Regread', 'WASHDC\HR_SQL_PRD_HPQC_Read'
+ Alter user [WASHDC\HR_SQL_PRD_HPQC_Read] WITH DEFAULT_SCHEMA = dbo 
+ --
+ EXEC sp_addrolemember 'XP_Regread', 'WASHDC\HR_SQL_PRD_HPQC_Modify'
+ Alter user [WASHDC\HR_SQL_PRD_HPQC_Modify] WITH DEFAULT_SCHEMA = dbo
+ --
+ EXEC sp_addrolemember 'XP_Regread', 'WASHDC\HR_SQL_PRD_HPQC_ViewDef'
+ Alter user [WASHDC\HR_SQL_PRD_HPQC_ViewDef] WITH DEFAULT_SCHEMA = dbo
+
+  EXEC sp_addrolemember 'XP_Regread', 'WASHDC\HR_SQL_PRD_HPQC_Execute'
+ Alter user [WASHDC\HR_SQL_PRD_HPQC_Execute] WITH DEFAULT_SCHEMA = dbo
+----------------------------------------------------------------------------------------------
+--End Script
+-----------------------------------------------------------------------------------------------
+*/

@@ -1,0 +1,184 @@
+---------------------------------
+---------------------------------
+--KOFAX SQL Server Roles
+--1-26-2017 (DAR Project)
+--Tim Collins
+--HREEWPRDDB1217\KFX_PRD
+----------------------------------
+-----------------------------------------
+--//HR_SQL_PRD_KOFAX_Read//---
+-----------------------------------------
+--JA 12-27-2017 Commented Out ESSR 48980
+-----------------------------------------
+/*
+--CREATE LOGIN
+USE [master]
+GO
+if not exists(select * from sys.server_principals where name = 'WASHDC\HR_SQL_PRD_KOFAX_Read')
+Begin
+CREATE LOGIN [WASHDC\HR_SQL_PRD_KOFAX_Read] FROM WINDOWS WITH DEFAULT_DATABASE=[master], DEFAULT_LANGUAGE=[us_english]
+END
+GO
+--GRANT PERMISSIONS
+EXEC master..sp_MSForeachdb '
+USE [?]
+IF ''?'' <> ''master'' AND ''?'' <> ''model'' AND ''?'' <> ''tempdb''
+BEGIN
+EXEC sp_addrolemember ''db_dataReader'', ''WASHDC\HR_SQL_PRD_KOFAX_Read''
+Alter user [WASHDC\HR_SQL_PRD_KOFAX_Read] WITH DEFAULT_SCHEMA = dbo 
+END'
+
+EXEC master..sp_MSForeachdb '
+USE [?]
+IF ''?'' <> ''master'' AND ''?'' <> ''model'' AND ''?'' <> ''tempdb''
+BEGIN
+	Grant CONNECT To [WASHDC\HR_SQL_PRD_KOFAX_Read] 
+END'
+*/
+----------------------------------------
+--//HR_SQL_PRD_KOFAX_Write//--
+----------------------------------------
+--JA 12-27-2017 Commented Out ESSR 48980
+-----------------------------------------
+/*
+--CREATE LOGIN
+USE [master]
+GO
+if not exists(select * from sys.server_principals where name = 'WASHDC\HR_SQL_PRD_KOFAX_Write')
+Begin
+CREATE LOGIN [WASHDC\HR_SQL_PRD_KOFAX_Write] FROM WINDOWS WITH DEFAULT_DATABASE=[master], DEFAULT_LANGUAGE=[us_english]
+END
+GO
+--GRANT PERMISSIONS
+EXEC master..sp_MSForeachdb '
+USE [?]
+IF ''?'' <> ''master'' AND ''?'' <> ''model'' AND ''?'' <> ''msdb'' AND ''?'' <> ''tempdb''
+BEGIN
+EXEC sp_addrolemember ''db_dataReader'', ''WASHDC\HR_SQL_PRD_KOFAX_Write''
+EXEC sp_addrolemember ''db_dataWriter'', ''WASHDC\HR_SQL_PRD_KOFAX_Write''
+Grant CONNECT To [WASHDC\HR_SQL_PRD_KOFAX_Write] 
+Alter user [WASHDC\HR_SQL_PRD_KOFAX_Write] WITH DEFAULT_SCHEMA = dbo 
+END'
+
+*/
+
+-------------------------------------
+--//HR_SQL_PRD_KOFAX_Modify//--
+-------------------------------------
+--Create LOGIN
+USE [master]
+GO
+if not exists(select * from sys.server_principals where name = 'WASHDC\HR_SQL_PRD_KOFAX_Modify')
+Begin
+CREATE LOGIN [WASHDC\HR_SQL_PRD_KOFAX_Modify] FROM WINDOWS WITH DEFAULT_DATABASE=[master], DEFAULT_LANGUAGE=[us_english]
+END
+GO
+--GRANT Permissions
+EXEC master..sp_MSForeachdb '
+USE [?]
+IF ''?'' <> ''master'' AND ''?'' <> ''model'' AND ''?'' <> ''msdb'' AND ''?'' <> ''tempdb''
+BEGIN
+	Grant CONNECT, CHECKPOINT, CREATE AGGREGATE, CREATE DEFAULT, CREATE FUNCTION, CREATE PROCEDURE, 
+CREATE QUEUE, CREATE RULE, CREATE SYNONYM, CREATE TABLE, CREATE TYPE, 
+CREATE VIEW, CREATE XML SCHEMA COLLECTION, REFERENCES, alter any assembly, ALTER ANY DATABASE DDL TRIGGER, 
+DELETE, Insert, References, Select, Update
+ To [WASHDC\HR_SQL_PRD_KOFAX_Modify] 
+EXEC sp_addrolemember ''db_datawriter'', ''WASHDC\HR_SQL_PRD_KOFAX_Modify''
+EXEC sp_addrolemember ''db_owner'', ''WASHDC\HR_SQL_PRD_KOFAX_Modify''
+Alter user [WASHDC\HR_SQL_PRD_KOFAX_Modify] WITH DEFAULT_SCHEMA = dbo 
+END'
+
+EXEC master..sp_MSForeachdb '
+USE [?] EXEC sp_addrolemember ''db_datareader'', ''WASHDC\HR_SQL_PRD_KOFAX_Modify''
+'
+use MSDB
+go
+
+Grant connect to [WASHDC\HR_SQL_PRD_KOFAX_Modify];
+EXEC sp_addrolemember 'SQLAgentOperatorRole', 'WASHDC\HR_SQL_PRD_KOFAX_Modify';
+go
+
+--------------------------------------
+--//HR_SQL_PRD_KOFAX_dbo//--
+--------------------------------------
+--JA 12-27-2017 Commented Out ESSR 48980
+-----------------------------------------
+/*
+--CREATE LOGIN
+USE [master]
+GO
+if not exists(select * from sys.server_principals where name = 'WASHDC\HR_SQL_PRD_KOFAX_Dbo')
+Begin
+CREATE LOGIN [WASHDC\HR_SQL_PRD_KOFAX_Dbo] FROM WINDOWS WITH DEFAULT_DATABASE=[master], DEFAULT_LANGUAGE=[us_english]
+END
+GO
+--GRANT PERMISSIONS
+EXEC master..sp_MSForeachdb '
+USE [?]
+IF ''?'' <> ''master'' AND ''?'' <> ''model'' AND ''?'' <> ''msdb'' AND ''?'' <> ''tempdb''
+BEGIN
+EXEC sp_addrolemember ''db_owner'', ''WASHDC\HR_SQL_PRD_KOFAX_Dbo''
+Grant CONNECT To [WASHDC\HR_SQL_PRD_KOFAX_Dbo] 
+Alter user [WASHDC\HR_SQL_PRD_KOFAX_Dbo] WITH DEFAULT_SCHEMA = dbo 
+END'
+
+*/
+
+----------------------------------------------
+--//HR_SQL_PRD_KOFAX_Execute//--
+---------------------------------------------
+--CREATE LOGIN
+USE [master]
+GO
+if not exists(select * from sys.server_principals where name = 'WASHDC\HR_SQL_PRD_KOFAX_Execute')
+Begin
+CREATE LOGIN [WASHDC\HR_SQL_PRD_KOFAX_Execute] FROM WINDOWS WITH DEFAULT_DATABASE=[master], DEFAULT_LANGUAGE=[us_english]
+END
+GO
+--GRANT PERMISSIONS
+EXEC master..sp_MSForeachdb '
+USE [?]
+IF ''?'' <> ''master'' AND ''?'' <> ''model'' AND ''?'' <> ''msdb'' AND ''?'' <> ''tempdb''
+BEGIN
+	Grant execute, connect
+ To [WASHDC\HR_SQL_PRD_KOFAX_Execute] 
+ Alter user [WASHDC\HR_SQL_PRD_KOFAX_Execute] WITH DEFAULT_SCHEMA = dbo 
+END'
+--------------------------------------------
+--//HR_SQL_PRD_KOFAX_ViewDef//--
+------------------------------------------------
+--CREATE LOGIN
+USE [master]
+GO
+if not exists(select * from sys.server_principals where name = 'WASHDC\HR_SQL_PRD_KOFAX_ViewDef')
+Begin
+CREATE LOGIN [WASHDC\HR_SQL_PRD_KOFAX_ViewDef] FROM WINDOWS WITH DEFAULT_DATABASE=[master], DEFAULT_LANGUAGE=[us_english]
+End
+GO
+--GRANT PERMISSIONS
+EXEC master..sp_MSForeachdb '
+USE [?]
+IF ''?'' <> ''master'' AND ''?'' <> ''model'' AND ''?'' <> ''msdb'' AND ''?'' <> ''tempdb''
+BEGIN
+	Grant view definition, connect
+ To [WASHDC\HR_SQL_PRD_KOFAX_ViewDef] 
+ Alter user [WASHDC\HR_SQL_PRD_KOFAX_ViewDef] WITH DEFAULT_SCHEMA = dbo 
+END'
+--------------------------------------------
+--//HR_SQL_PRD_KOFAX_Admin//-----
+--------------------------------------------
+--CREATE LOGIN
+USE [master]
+GO
+if not exists(select * from sys.server_principals where name = 'WASHDC\HR_SQL_PRD_KOFAX_Admin')
+Begin
+CREATE LOGIN [WASHDC\HR_SQL_PRD_KOFAX_Admin] FROM WINDOWS WITH DEFAULT_DATABASE=[master], DEFAULT_LANGUAGE=[us_english]
+END
+GO
+--GRANT PERMISSIONS
+EXEC master..sp_MSForeachdb '
+USE [?] EXEC sp_addrolemember ''db_owner'', ''WASHDC\HR_SQL_PRD_KOFAX_Admin''
+Grant Connect to [WASHDC\HR_SQL_PRD_KOFAX_Admin]
+Alter user [WASHDC\HR_SQL_PRD_KOFAX_Admin] WITH DEFAULT_SCHEMA = dbo 
+'
+EXEC sp_addsrvrolemember 'WASHDC\HR_SQL_PRD_KOFAX_Admin', 'sysadmin'

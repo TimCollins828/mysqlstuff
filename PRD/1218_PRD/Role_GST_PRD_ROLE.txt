@@ -1,0 +1,53 @@
+---------------------------------
+---------------------------------
+--SQL Server GST Role in Generic_Survey_Tool database
+-- 09-01-2017
+-- HREEWPRDDB1218\PRD
+--Jeffrey Ayoub
+----------------------------------
+
+--------------------------------------------------------
+--Create Login - Server Prinicipal
+--------------------------------------------------------
+
+USE [master]
+GO
+if not exists(select * from sys.server_principals where name = 'HRWEB_GST')
+Begin
+CREATE LOGIN [HRWEB_GST] with password ='PASSWORDHERE', DEFAULT_LANGUAGE=[us_english], 
+CHECK_EXPIRATION=ON, CHECK_POLICY=ON;
+END
+GO
+
+------------------------------------------------------
+--Create Login in our Database(s) (Database Prinicipal)
+-------------------------------------------------------
+
+--JA adding the db_datareader and writer to this login 9-1-17 ESSR 47432
+USE [GENERIC_SURVEY_TOOL]
+if exists(select * from sys.database_principals where name ='HRWEB_GST')
+BEGIN
+Drop user HRWEB_GST;
+END
+Create User [HRWEB_GST] for Login [HRWEB_GST] with DEFAULT_SCHEMA = dbo
+EXEC sp_addrolemember 'db_datawriter', 'HRWEB_GST'
+EXEC sp_addrolemember 'db_datareader', 'HRWEB_GST'
+
+------------------------------------------------------
+--Create Role in Database(s)
+------------------------------------------------------
+--JA REMOVED DB_DATAREADER AND WRITER FROM THIS ROLE 9-1-17 ESSR 47432  
+if exists (select 1 from sys.database_principals where name='GST_PRD_ROLE' and Type = 'R')
+Begin
+ALTER ROLE GST_PRD_ROLE DROP MEMBER HRWEB_GST 
+Drop Role GST_PRD_ROLE
+END
+
+CREATE ROLE GST_PRD_ROLE AUTHORIZATION [dbo];
+Grant Execute, CONNECT, Select To GST_PRD_ROLE;
+
+------------------------------------------------------------
+--Grant Role to Database Principal
+------------------------------------------------------------
+
+EXEC sp_addrolemember 'GST_PRD_ROLE', 'HRWEB_GST'

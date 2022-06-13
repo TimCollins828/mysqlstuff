@@ -1,0 +1,27 @@
+---------------------------------
+---------------------------------
+--PRD SQL Server Login
+--Jeffrey Ayoub
+--HRINFNETIQDB01\NETIQ
+----------------------------------
+----------------------------------
+--ESSR 48827 The AVAMAR account
+--Jeffrey Ayoub
+-- 12-14-2017
+-----------------------------------------
+
+--CREATE LOGIN
+USE [master]
+GO
+if not exists(select * from sys.server_principals where name = 'AVMSYSOAB')
+Begin
+CREATE LOGIN [AVMSYSOAB] WITH PASSWORD=N'XXX', DEFAULT_DATABASE=[master], CHECK_EXPIRATION=OFF, CHECK_POLICY=ON, DEFAULT_LANGUAGE=[us_english]
+END
+GO
+--GRANT PERMISSIONS (2008 or 2014)
+
+--For SQL Server 2008 use
+--EXEC SP_ADDSRVROLEMEMBER [AVMSYSOAB], [SYSADMIN]
+
+--For SQL Server 2014 use
+ALTER SERVER ROLE [sysadmin] ADD MEMBER [AVMSYSOAB]

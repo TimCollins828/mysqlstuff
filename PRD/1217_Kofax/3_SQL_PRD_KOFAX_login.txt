@@ -1,0 +1,76 @@
+---------------------------------
+---------------------------------
+--Tim COllins
+--SQL Server HREEWPRDDB1217\KFX_PRD
+--ACCOUNT: SQL_PRD_KOFAX
+--10-4-2017 PRODUCTION - KOFAX
+----------------------------------
+--ESSR 47720 to create the script and update the 
+--09-18-2017
+--------------------------------------------------------
+--Create Login - Server Prinicipal
+--------------------------------------------------------
+
+USE [master]
+GO
+if not exists(select * from sys.server_principals where name = 'SQL_PRD_KOFAX')
+Begin
+CREATE LOGIN [SQL_PRD_KOFAX] with password ='Passwordhere', 
+DEFAULT_LANGUAGE=[us_english], CHECK_EXPIRATION=ON, CHECK_POLICY=ON;
+END
+GO
+
+------------------------------------------------------
+--Create Login in Database(HRKOFAX) (Database Prinicipal)
+-------------------------------------------------------
+
+USE [HRKOFAX]
+if exists(select * from sys.database_principals where name ='SQL_PRD_KOFAX')
+BEGIN
+Drop user SQL_PRD_KOFAX;
+END
+Create User [SQL_PRD_KOFAX] for Login [SQL_PRD_KOFAX] with DEFAULT_SCHEMA = dbo
+
+Grant CONNECT To [SQL_PRD_KOFAX];
+EXEC sp_addrolemember 'db_datawriter', 'SQL_PRD_KOFAX'
+EXEC sp_addrolemember 'db_datareader', 'SQL_PRD_KOFAX'
+GRANT IMPERSONATE ON USER::KCSystemDbUser TO SQL_PRD_KOFAX
+
+--TC updated 10042017 --this user requires this application-generated role
+EXEC sp_addrolemember 'KCSystemDbRole', 'SQL_PRD_KOFAX'
+------------------------------------------------------
+--Create Login in Database(HRKOFAX_SA1) (Database Prinicipal)
+-------------------------------------------------------
+
+USE [HRKOFAX_SA1]
+if exists(select * from sys.database_principals where name ='SQL_PRD_KOFAX')
+BEGIN
+Drop user SQL_PRD_KOFAX;
+END
+Create User [SQL_PRD_KOFAX] for Login [SQL_PRD_KOFAX] with DEFAULT_SCHEMA = dbo
+
+Grant CONNECT To [SQL_PRD_KOFAX];
+EXEC sp_addrolemember 'db_datawriter', 'SQL_PRD_KOFAX'
+EXEC sp_addrolemember 'db_datareader', 'SQL_PRD_KOFAX'
+GRANT IMPERSONATE ON USER::KCSystemDbUser TO SQL_PRD_KOFAX
+
+--TC updated 10042017 --this user requires this application-generated role
+EXEC sp_addrolemember 'KCSystemDbRole', 'SQL_PRD_KOFAX'
+------------------------------------------------------
+--Create Login in Database(HRKofaxTracker) (Database Prinicipal)
+-------------------------------------------------------
+
+USE [HRKofaxTracker]
+if exists(select * from sys.database_principals where name ='SQL_PRD_KOFAX')
+BEGIN
+Drop user SQL_PRD_KOFAX;
+END
+Create User [SQL_PRD_KOFAX] for Login [SQL_PRD_KOFAX] with DEFAULT_SCHEMA = dbo
+
+Grant CONNECT To [SQL_PRD_KOFAX];
+EXEC sp_addrolemember 'db_datawriter', 'SQL_PRD_KOFAX'
+EXEC sp_addrolemember 'db_datareader', 'SQL_PRD_KOFAX'
+
+------------------------------------------------------
+--END SCRIPT
+-------------------------------------------------------
