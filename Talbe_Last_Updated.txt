@@ -1,0 +1,7 @@
+--Database Table last update times
+select name, physical_name from sys.database_files
+SELECT OBJECT_NAME(OBJECT_ID) AS DatabaseName, last_user_update
+FROM sys.dm_db_index_usage_stats
+where last_user_update is not null
+and OBJECT_NAME(OBJECT_ID) is not null
+order by last_user_update desc

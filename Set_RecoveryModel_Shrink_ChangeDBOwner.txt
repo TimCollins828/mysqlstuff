@@ -1,0 +1,50 @@
+--Get Log Space for all databases:
+dbcc sqlperf(logspace)
+
+--Find Space used for specific database;
+Use MyDatabase
+Go
+
+-- Individual File Sizes and space available for current database  
+SELECT f.name AS [File Name] , f.physical_name AS [Physical Name], 
+CAST((f.size/128.0) AS DECIMAL(15,2)) AS [Total Size in MB],
+CAST(f.size/128.0 - CAST(FILEPROPERTY(f.name, 'SpaceUsed') AS int)/128.0 AS DECIMAL(15,2)) 
+AS [Available Space In MB], [file_id], fg.name AS [Filegroup Name]
+FROM sys.database_files AS f WITH (NOLOCK) 
+LEFT OUTER JOIN sys.data_spaces AS fg WITH (NOLOCK) 
+ON f.data_space_id = fg.data_space_id OPTION (RECOMPILE);
+
+--Get the Logical name for the database files
+
+SELECT *, name
+FROM sys.master_files
+WHERE database_id = db_id()
+  --AND type = 1
+GO
+  
+--Shrink The Log File
+  DBCC SHRINKFILE (PASSANALYSIS_Log, 20); --20 MB
+GO
+
+--Shrink The Data File
+  DBCC SHRINKFILE (PASSANALYSIS, 200); --200 MB
+GO 
+
+
+----------------------------------------------------------------------------------------------------
+--Alter DB Owner and Recovery Model if needed
+----------------------------------------------------------------------------------------------------
+ --set db owner to sa
+ SELECT 'ALTER AUTHORIZATION ON DATABASE::' + QUOTENAME(name) + ' TO [sa];' 
+ from sys.databases
+     where name not in ('master', 'model', 'tempdb')
+     
+     --Alter recovery model
+      SELECT 'ALTER DATABASE ' + QUOTENAME(name) + ' SET RECOVERY SIMPLE;' 
+ from sys.databases
+     where name not in ('master', 'model', 'tempdb')
+     
+     -- ALTER DATABASE YourDatabase SET RECOVERY SIMPLE not in ('master', 'model', 'tempdb')
+
+--40GB Dev
+--67GB DEVEE

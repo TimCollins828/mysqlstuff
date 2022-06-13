@@ -1,0 +1,28 @@
+-- List out all users and user roles of all databases in a SQL Server instance
+set nocount on
+set quoted_identifier off
+Declare @name varchar(100)
+Declare @sqlstatement nvarchar(4000)
+--move declare cursor into sql to be executed
+Declare users_cursor CURSOR FOR Select name from sys.databases where database_id > 4
+
+OPEN users_cursor
+FETCH NEXT FROM users_cursor
+INTO @name
+WHILE @@FETCH_STATUS = 0
+BEGIN
+print 'Database ' + @name
+set @sqlstatement = N'use [' + @name +']'+char(13)+N'select 
+convert(char(30),dp2.name) UserName,convert(char(20),dp2.type_desc) UserType, convert(char(20),dp.name) Role
+FROM sys.database_principals dp
+INNER JOIN sys.database_role_members drm ON dp.principal_id = drm.role_principal_id
+INNER JOIN sys.database_principals dp2 ON drm.member_principal_id = dp2.principal_id
+WHERE dp2.principal_id > 4 AND dp2.type <>'+'''R'''
+
+exec sp_executesql @sqlstatement
+
+FETCH NEXT FROM users_cursor --have to fetch again within loop
+INTO @name
+END
+CLOSE users_cursor
+DEALLOCATE users_cursor

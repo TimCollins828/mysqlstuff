@@ -1,0 +1,16 @@
+--Currently Executing
+SELECT percent_complete, 
+(req.total_elapsed_time/1000)/60 as Total_ElapsedTime_Minutes,
+req.session_id,
+req.status,
+req.command,
+sqltext.TEXT,
+req.cpu_time
+FROM sys.dm_exec_requests req
+CROSS APPLY sys.dm_exec_sql_text(sql_handle) AS sqltext
+where session_id = 59;
+
+--0810 Begin
+
+select name, state_desc from sys.databases
+where database_id = 5;
