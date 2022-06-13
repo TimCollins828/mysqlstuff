@@ -1,0 +1,106 @@
+---------------------------------
+---------------------------------
+--SQL Server XP_RegRead Role
+--1-23-2017 (DAR Project)
+--Tim Collins
+-- HREEWPRDDB1218\PRD
+----------------------------------
+--Note that this account was created as a result of moving SSRS data 
+--sources to use SQL Logins due to "Smart Card" requirement
+----------------------------------
+--//[XP_Regread]//---
+---------------------------
+--Grant Execute back to Public
+--grant exe
+Grant Execute ON xp_regread TO public
+Grant Execute ON xp_Instance_regread TO public
+go
+
+--revoke execute from Public
+Revoke Execute ON xp_regread TO public
+Revoke Execute ON xp_Instance_regread TO public
+go
+
+--Create Role in Master
+use master 
+go
+if not exists (select 1 from sys.database_principals where name='XP_Regread' and Type = 'R')
+Begin
+CREATE Role XP_Regread
+END
+GRANT EXEC ON OBJECT::master.dbo.xp_instance_regread TO XP_Regread;
+GRANT EXEC ON OBJECT::master.dbo.xp_regread TO XP_Regread;
+Go
+
+----------------------------------------------
+--Create Database Users in Master From Logins
+----------------------------------------------
+USE [master]
+GO
+--Read
+if not exists(select * from sys.database_principals where name ='WASHDC\HR_SQL_PRD_Read')
+BEGIN
+Create user [WASHDC\HR_SQL_PRD_Read] for Login [WASHDC\HR_SQL_PRD_Read] WITH DEFAULT_SCHEMA = dbo 
+End
+
+-------------------------------------------------
+--Modify
+--JA 12-27-2017 Commented Out ESSR 48980
+--if not exists(select * from sys.database_principals where name ='WASHDC\HR_SQL_PRD_Modify')
+--BEGIN
+--Create user [WASHDC\HR_SQL_PRD_Modify] for Login [WASHDC\HR_SQL_PRD_Modify] WITH DEFAULT_SCHEMA = dbo 
+--End
+------------------------------------------------
+--View Def
+if not exists(select * from sys.database_principals where name ='WASHDC\HR_SQL_PRD_ViewDef')
+BEGIN
+Create user [WASHDC\HR_SQL_PRD_ViewDef] for Login [WASHDC\HR_SQL_PRD_ViewDef] WITH DEFAULT_SCHEMA = dbo 
+End
+
+--------------------------------------------------
+--Execute
+--JA 12-27-2017 Commented Out ESSR 48980
+--if not exists(select * from sys.database_principals where name ='WASHDC\HR_SQL_PRD_Execute')
+--BEGIN
+--Create user [WASHDC\HR_SQL_PRD_Execute] for Login [WASHDC\HR_SQL_PRD_Execute] WITH DEFAULT_SCHEMA = dbo 
+--End
+-------------------------------------------------
+--HR_SQL_PRD_EAPS_READ
+if not exists(select * from sys.database_principals where name ='WASHDC\HR_SQL_PRD_EAPS_READ')
+BEGIN
+Create user [WASHDC\HR_SQL_PRD_EAPS_READ] for Login [WASHDC\HR_SQL_PRD_EAPS_READ] WITH DEFAULT_SCHEMA = dbo 
+End
+
+-----------------------------
+--Grant DB Users Connect
+-----------------------------
+Grant Connect TO [WASHDC\HR_SQL_PRD_Read]
+
+--JA 12-27-2017 Commented Out ESSR 48980
+--Grant Connect TO [WASHDC\HR_SQL_PRD_Modify]
+
+Grant Connect TO [WASHDC\HR_SQL_PRD_ViewDef]
+
+--JA 12-27-2017 Commented Out ESSR 48980
+--Grant Connect TO [WASHDC\HR_SQL_PRD_Execute]
+
+Grant Connect TO [WASHDC\HR_SQL_PRD_EAPS_READ]
+
+--------------
+--Grant Role
+--------------
+EXEC sp_addrolemember 'XP_Regread', 'WASHDC\HR_SQL_PRD_Read'
+
+--JA 12-27-2017 Commented Out ESSR 48980
+--EXEC sp_addrolemember 'XP_Regread', 'WASHDC\HR_SQL_PRD_Modify'
+
+EXEC sp_addrolemember 'XP_Regread', 'WASHDC\HR_SQL_PRD_ViewDef'
+
+--JA 12-27-2017 Commented Out ESSR 48980
+--EXEC sp_addrolemember 'XP_Regread', 'WASHDC\HR_SQL_PRD_Execute'
+
+EXEC sp_addrolemember 'XP_Regread', 'WASHDC\HR_SQL_PRD_EAPS_READ'
+
+--------------------------------------------------------------------
+--End Script
+--------------------------------------------------------------------

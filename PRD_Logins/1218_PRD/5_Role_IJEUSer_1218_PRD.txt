@@ -1,0 +1,123 @@
+---------------------------------
+---------------------------------
+--SQL Server IJEUser
+--1-23-2017 (DAR Project)
+--Tim Collins
+----------------------------------
+----------------------------------
+--//[IJEUser]//---
+--HREEWPRDDB1218\PRD
+---------------------------
+--Create Login
+--select @@servername
+USE [master]
+GO
+if not exists(select * from sys.server_principals where name = 'IJEUser')
+Begin
+CREATE LOGIN [IJEUser] with password ='xxx'
+End
+
+
+--GRANT PERMISSIONS on HRWorkflow and Caje
+EXEC master..sp_MSForeachdb
+ @command1='IF ''?''
+IN (''HRWorkflow'', ''Caje'')
+BEGIN
+Use [?]
+--Create User
+if not exists(select * from sys.database_principals where name =''IJEUser'')
+BEGIN
+Create user [IJEUser] for Login [IJEUser] 
+END
+--Create Role
+if not exists (select 1 from sys.database_principals where name=''IJEUser_Role'' and Type = ''R'')
+Begin
+CREATE Role IJEUser_Role
+END
+	Grant Exec ON Schema::dbo TO [IJEUser_Role]
+	Grant Select ON Schema::dbo TO [IJEUser_Role]
+	Grant Delete ON Schema::dbo TO [IJEUser_Role]
+	Grant Connect TO [IJEUser_Role]
+
+ EXEC sp_addrolemember ''db_datawriter'', ''IJEUser_Role''
+EXEC sp_addrolemember ''db_datareader'', ''IJEUser_Role''
+ Alter Role [IJEUser_Role] ADD MEMBER [IJEUser] 
+Alter user [IJEUser] WITH DEFAULT_SCHEMA = dbo 
+END
+'
+
+--Grant Permissions on EAPS
+Use EAPS
+go
+--Create User
+if not exists(select * from sys.database_principals where name ='IJEUser')
+BEGIN
+Create user [IJEUser] for Login [IJEUser] 
+END
+
+--Create Role
+if not exists (select 1 from sys.database_principals where name='IJEUser_Role' and Type = 'R')
+Begin
+CREATE Role IJEUser_Role
+END
+
+Grant Connect TO [IJEUser_Role]
+Grant Select ON EAPS.dbo.Amer_Pos TO [IJEUser_Role]
+Grant Select ON EAPS.dbo.EAPS_ACTIVE_DIRECTORY_DATA TO [IJEUser_Role]
+Grant Select ON EAPS.dbo.EAPS_AD_ROLES_PERMISSIONS TO [IJEUser_Role]
+Grant Select ON EAPS.dbo.EAPS_AD_USER_POST_ROLES TO [IJEUser_Role]
+Grant Select ON EAPS.dbo.EAPS_AD_USER_ROLES TO [IJEUser_Role]
+Grant Select ON EAPS.dbo.EAPS_REPORT_METADATA TO [IJEUser_Role]
+Grant Select ON EAPS.dbo.ESERVICES_REQUEST_COMMENT TO [IJEUser_Role]
+Grant Select ON EAPS.dbo.FN_EMP_POS TO [IJEUser_Role]
+Grant Select ON EAPS.dbo.FN_POS TO [IJEUser_Role]
+Grant Select ON EAPS.dbo.STD_APPLICATION TO [IJEUser_Role]
+Grant Select ON EAPS.dbo.STD_CNTRY TO [IJEUser_Role]
+Grant Select ON EAPS.dbo.STD_EXECUTIVE_AGENCY TO [IJEUser_Role]
+Grant Select ON EAPS.dbo.STD_JOB_FAMILY TO [IJEUser_Role]
+Grant Select ON EAPS.dbo.STD_JOB_SERIES TO [IJEUser_Role]
+Grant Select ON EAPS.dbo.STD_JOB_TITLE TO [IJEUser_Role]
+Grant Select ON EAPS.dbo.STD_LANG TO [IJEUser_Role]
+Grant Select ON EAPS.dbo.STD_LANG_SKILL TO [IJEUser_Role]
+Grant Select ON EAPS.dbo.STD_OCC_SERIES_GRP TO [IJEUser_Role]
+Grant Select ON EAPS.dbo.STD_OCC_SERIES_GRP_HISTORY TO [IJEUser_Role]
+Grant Select ON EAPS.dbo.STD_PERMISSION TO [IJEUser_Role]
+Grant Select ON EAPS.dbo.STD_POST TO [IJEUser_Role]
+Grant Select ON EAPS.dbo.STD_POST_section TO [IJEUser_Role]
+Grant Select ON EAPS.dbo.STD_REGION TO [IJEUser_Role]
+Grant Select ON EAPS.dbo.STD_ROLE TO [IJEUser_Role]
+Grant Select ON EAPS.dbo.USER_ACCESS_REQUEST TO [IJEUser_Role]
+
+--Add user to role
+ Alter Role [IJEUser_Role] ADD MEMBER [IJEUser];
+go 
+ 
+ --Make DBO default
+ Alter user [IJEUser] WITH DEFAULT_SCHEMA = dbo ;
+go
+-------------------------------
+--Grant Permisisons on Caje
+-------------------------------
+--Grant Permissions on Caje
+Use Caje
+go
+--Create User
+if not exists(select * from sys.database_principals where name ='IJEUser')
+BEGIN
+Create user [IJEUser] for Login [IJEUser] 
+END
+--Create Role
+if not exists (select 1 from sys.database_principals where name='IJEUser_Role' and Type = 'R')
+Begin
+CREATE Role IJEUser_Role
+END
+	Grant Exec ON Schema::dbo TO [IJEUser_Role]
+	Grant Select ON Schema::dbo TO [IJEUser_Role]
+	Grant Delete ON Schema::dbo TO [IJEUser_Role]
+	Grant Connect TO [IJEUser_Role]
+
+ EXEC sp_addrolemember 'db_datawriter', 'IJEUser_Role'
+EXEC sp_addrolemember 'db_datareader', 'IJEUser_Role'
+ Alter Role [IJEUser_Role] ADD MEMBER [IJEUser] 
+Alter user [IJEUser] WITH DEFAULT_SCHEMA = dbo 
+

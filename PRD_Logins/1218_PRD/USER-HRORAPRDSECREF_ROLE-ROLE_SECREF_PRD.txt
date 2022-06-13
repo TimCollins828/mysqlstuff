@@ -1,0 +1,130 @@
+---------------------------------
+---------------------------------
+--SQL Server HRORAPRDSECREF User, ROLE_SECREF_PRD,
+--DB_OWNER OF EAPS_ARCHIVE, HRWorkflow
+--Read on Caje and Eaps
+--01-10-2017 (DAR Project)
+--Tim Collins
+--HREEWPRDDB1218\PRD
+----------------------------------
+-----------------------------------------------------------------------------------------
+--Create Login IN SQL SERVER
+-------------------------------------------------------------------------------------------
+USE [master]
+GO
+
+if not exists(select * from sys.server_principals where name = 'HRORAPRDSECREF')
+Begin
+CREATE LOGIN [HRORAPRDSECREF] WITH PASSWORD=N'xxx', DEFAULT_DATABASE=[master], CHECK_EXPIRATION=ON,CHECK_POLICY=ON
+End
+
+-------------------------------------------------------------------------------------------
+--CREATE USER IN THE DATABASE EAPS_Archive & db_owner
+-------------------------------------------------------------------------------------------
+Use [EAPS_Archive]
+go
+
+If exists(select * from sys.database_principals where name ='HRORAPRDSECREF')
+BEGIN
+DROP USER [HRORAPRDSECREF] 
+END
+
+CREATE USER [HRORAPRDSECREF] FOR LOGIN [HRORAPRDSECREF] WITH DEFAULT_SCHEMA=[dbo] 
+Grant CONNECT To [HRORAPRDSECREF]
+EXEC sp_addrolemember [db_owner],[HRORAPRDSECREF];
+
+-------------------------------------------------------------------------------------------
+--CREATE USER IN THE DATABASE HRWorkflow & db_owner
+-------------------------------------------------------------------------------------------
+USE [HRWorkflow]
+If exists(select * from sys.database_principals where name ='HRORAPRDSECREF')
+BEGIN
+DROP USER [HRORAPRDSECREF] 
+END
+
+CREATE USER [HRORAPRDSECREF] FOR LOGIN [HRORAPRDSECREF] WITH DEFAULT_SCHEMA=[dbo]  
+Grant CONNECT To [HRORAPRDSECREF]
+EXEC sp_addrolemember [db_owner],[HRORAPRDSECREF]
+  
+-------------------------------------------------------------------------------------------
+--CREATE USER IN THE DATABASE EAPS & db_datareader and Role [ROLE_SECREF_PRD]
+-------------------------------------------------------------------------------------------
+USE [EAPS]
+go
+
+If exists(select * from sys.database_principals where name ='HRORAPRDSECREF')
+BEGIN
+DROP USER [HRORAPRDSECREF] 
+END
+
+CREATE USER [HRORAPRDSECREF] FOR LOGIN [HRORAPRDSECREF] with default_schema = dbo;
+Grant CONNECT To [HRORAPRDSECREF]
+EXEC sp_addrolemember [db_datareader],[HRORAPRDSECREF]
+
+--Create Role
+
+if exists (select 1 from sys.database_principals where name='ROLE_SECREF_PRD' and Type = 'R')
+Begin
+ALTER ROLE [ROLE_SECREF_PRD] DROP MEMBER [HRORAPRDSECREF]
+DROP ROLE [ROLE_SECREF_PRD]
+end
+
+CREATE ROLE [ROLE_SECREF_PRD] AUTHORIZATION [dbo]
+
+Grant Connect TO [ROLE_SECREF_PRD]
+Grant Update on dbo.EAPS_AD_USER_ROLES to [ROLE_SECREF_PRD]
+Grant Insert on dbo.EAPS_AD_USER_ROLES to [ROLE_SECREF_PRD]
+
+Grant Delete on OBJECT::vw_HRSAR_STD_APPLICATION to [ROLE_SECREF_PRD];
+Grant Update on OBJECT::vw_HRSAR_STD_APPLICATION to [ROLE_SECREF_PRD];
+Grant Insert on OBJECT::vw_HRSAR_STD_APPLICATION to [ROLE_SECREF_PRD];
+
+--Add user to Role
+ALTER ROLE [ROLE_SECREF_PRD] ADD MEMBER [HRORAPRDSECREF]
+
+-------------------------------------------------------------------------------------------
+--CREATE USER IN THE DATABASE CAJE Grant db_datareader and Role [ROLE_SECREF_PRD]
+-------------------------------------------------------------------------------------------
+
+USE [CAJE]
+go
+
+if exists(select * from sys.database_principals where name ='HRORAPRDSECREF')
+BEGIN
+DROP USER [HRORAPRDSECREF] 
+END
+
+CREATE USER [HRORAPRDSECREF] FOR LOGIN [HRORAPRDSECREF] with default_schema = [dbo]  
+Grant CONNECT To [HRORAPRDSECREF]
+EXEC sp_addrolemember [db_datareader],[HRORAPRDSECREF] 
+
+
+--Create Role
+
+USE [Caje]
+GO
+
+if exists (select 1 from sys.database_principals where name='ROLE_SECREF_PRD' and Type = 'R')
+Begin
+ALTER ROLE [ROLE_SECREF_PRD] DROP MEMBER [HRORAPRDSECREF]
+DROP ROLE [ROLE_SECREF_PRD]
+END
+
+CREATE ROLE [ROLE_SECREF_PRD] AUTHORIZATION [dbo]
+
+Grant Connect TO [ROLE_SECREF_PRD]
+GRANT SELECT ON dbo.fn_CAJE_getCurrentWFActivity TO [ROLE_SECREF_PRD] 
+GRANT Execute on dbo.fn_CAJE_getCurrentWFActivityStatusName TO [ROLE_SECREF_PRD]
+
+ALTER ROLE [ROLE_SECREF_PRD] ADD MEMBER [HRORAPRDSECREF]
+
+-------------------------------------------------------------------------------------------
+--END SCRIPT
+-------------------------------------------------------------------------------------------
+
+--From BOL: Users other than the owner must be granted EXECUTE permission on a function 
+--(if the function is scalar-valued) before they can use it in a Transact-SQL 
+--Statement. 
+--If the function is table-valued, the user must have SELECT permissions on the 
+--function 
+--before referencing it.Feb 4, 2015

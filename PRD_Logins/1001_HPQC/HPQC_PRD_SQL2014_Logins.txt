@@ -1,0 +1,202 @@
+---------------------------------
+---------------------------------
+--PRD SQL Server Roles
+--8-10-2016 (DAR Project)
+--Tim Collins
+----------------------------------
+--HREWWINFDB1001\HPQC_PRD
+----------------------------------
+--//HR_SQL_PRD_HPQC_Read//---
+----------------------------------
+--JA 12-27-2017 Commented Out ESSR 48980
+--------------------------------------------
+/*
+--CREATE LOGIN
+USE [master]
+GO
+if not exists(select * from sys.server_principals where name = 'WASHDC\HR_SQL_PRD_HPQC_Read')
+Begin
+CREATE LOGIN [WASHDC\HR_SQL_PRD_HPQC_Read] FROM WINDOWS WITH DEFAULT_DATABASE=[master], DEFAULT_LANGUAGE=[us_english]
+END
+GO
+--GRANT PERMISSIONS
+EXEC master..sp_MSForeachdb '
+USE [?]
+IF ''?'' <> ''master'' AND ''?'' <> ''model'' AND ''?'' <> ''tempdb''
+BEGIN
+EXEC sp_addrolemember ''db_dataReader'', ''WASHDC\HR_SQL_PRD_HPQC_Read''
+Alter user [WASHDC\HR_SQL_PRD_HPQC_Read] WITH DEFAULT_SCHEMA = dbo 
+END'
+
+EXEC master..sp_MSForeachdb '
+USE [?]
+IF ''?'' <> ''master'' AND ''?'' <> ''model'' AND ''?'' <> ''tempdb''
+BEGIN
+	Grant CONNECT To [WASHDC\HR_SQL_PRD_HPQC_Read] 
+END'
+
+use MSDB
+go
+
+EXEC sp_addrolemember 'db_dataReader', 'WASHDC\HR_SQL_PRD_HPQC_Read'
+*/
+
+/*
+---------------------------------
+--//HR_SQL_PRD_HPQC_Write//--
+---------------------------------
+--CREATE LOGIN
+USE [master]
+GO
+if not exists(select * from sys.server_principals where name = 'WASHDC\HR_SQL_PRD_HPQC_Write')
+Begin
+CREATE LOGIN [WASHDC\HR_SQL_PRD_HPQC_Write] FROM WINDOWS WITH DEFAULT_DATABASE=[master], DEFAULT_LANGUAGE=[us_english]
+END
+GO
+--GRANT PERMISSIONS
+EXEC master..sp_MSForeachdb '
+USE [?]
+IF ''?'' <> ''master'' AND ''?'' <> ''model'' AND ''?'' <> ''msdb'' AND ''?'' <> ''tempdb''
+BEGIN
+EXEC sp_addrolemember ''db_dataReader'', ''WASHDC\HR_SQL_PRD_HPQC_Write''
+EXEC sp_addrolemember ''db_dataWriter'', ''WASHDC\HR_SQL_PRD_HPQC_Write''
+Grant CONNECT To [WASHDC\HR_SQL_PRD_HPQC_Write] 
+Alter user [WASHDC\HR_SQL_PRD_HPQC_Write] WITH DEFAULT_SCHEMA = dbo 
+END'
+
+------------------------------------
+--//HR_SQL_PRD_HPQC_Modify//--
+------------------------------------
+--Create LOGIN
+USE [master]
+GO
+if not exists(select * from sys.server_principals where name = 'WASHDC\HR_SQL_PRD_HPQC_Modify')
+Begin
+CREATE LOGIN [WASHDC\HR_SQL_PRD_HPQC_Modify] FROM WINDOWS WITH DEFAULT_DATABASE=[master], DEFAULT_LANGUAGE=[us_english]
+END
+GO
+--GRANT Permissions
+EXEC master..sp_MSForeachdb '
+USE [?]
+IF ''?'' <> ''master'' AND ''?'' <> ''model'' AND ''?'' <> ''msdb'' AND ''?'' <> ''tempdb''
+BEGIN
+	Grant CONNECT, CHECKPOINT, CREATE AGGREGATE, CREATE DEFAULT, CREATE FUNCTION, CREATE PROCEDURE, 
+CREATE QUEUE, CREATE RULE, CREATE SYNONYM, CREATE TABLE, CREATE TYPE, 
+CREATE VIEW, CREATE XML SCHEMA COLLECTION, REFERENCES, alter any assembly, ALTER ANY DATABASE DDL TRIGGER, 
+DELETE, Insert, References, Select, Update
+ To [WASHDC\HR_SQL_PRD_HPQC_Modify] 
+EXEC sp_addrolemember ''db_datawriter'', ''WASHDC\HR_SQL_PRD_HPQC_Modify''
+EXEC sp_addrolemember ''db_datareader'', ''WASHDC\HR_SQL_PRD_HPQC_Modify''
+Alter user [WASHDC\HR_SQL_PRD_HPQC_Modify] WITH DEFAULT_SCHEMA = dbo 
+END'
+
+--------------------------------
+--//HR_SQL_PRD_HPQC_dbo//--
+-------------------------------
+--CREATE LOGIN
+USE [master]
+GO
+if not exists(select * from sys.server_principals where name = 'WASHDC\HR_SQL_PRD_HPQC_Dbo')
+Begin
+CREATE LOGIN [WASHDC\HR_SQL_PRD_HPQC_Dbo] FROM WINDOWS WITH DEFAULT_DATABASE=[master], DEFAULT_LANGUAGE=[us_english]
+END
+GO
+--GRANT PERMISSIONS
+EXEC master..sp_MSForeachdb '
+USE [?]
+IF ''?'' <> ''master'' AND ''?'' <> ''model'' AND ''?'' <> ''msdb'' AND ''?'' <> ''tempdb''
+BEGIN
+EXEC sp_addrolemember ''db_owner'', ''WASHDC\HR_SQL_PRD_HPQC_Dbo''
+Grant CONNECT To [WASHDC\HR_SQL_PRD_HPQC_Dbo] 
+Alter user [WASHDC\HR_SQL_PRD_HPQC_Dbo] WITH DEFAULT_SCHEMA = dbo 
+END'
+------------------------------
+--//HR_SQL_PRD_HPQC_Execute//--
+-------------------------------
+--CREATE LOGIN
+USE [master]
+GO
+if not exists(select * from sys.server_principals where name = 'WASHDC\HR_SQL_PRD_HPQC_Execute')
+Begin
+CREATE LOGIN [WASHDC\HR_SQL_PRD_HPQC_Execute] FROM WINDOWS WITH DEFAULT_DATABASE=[master], DEFAULT_LANGUAGE=[us_english]
+END
+GO
+--GRANT PERMISSIONS
+EXEC master..sp_MSForeachdb '
+USE [?]
+IF ''?'' <> ''master'' AND ''?'' <> ''model'' AND ''?'' <> ''msdb'' AND ''?'' <> ''tempdb''
+BEGIN
+	Grant execute, connect
+ To [WASHDC\HR_SQL_PRD_HPQC_Execute] 
+ Alter user [WASHDC\HR_SQL_PRD_HPQC_Execute] WITH DEFAULT_SCHEMA = dbo 
+END'
+---------------------------------
+--//HR_SQL_PRD_HPQC_ViewDef//--
+--------------------------------
+--CREATE LOGIN
+USE [master]
+GO
+if not exists(select * from sys.server_principals where name = 'WASHDC\HR_SQL_PRD_HPQC_ViewDef')
+Begin
+CREATE LOGIN [WASHDC\HR_SQL_PRD_HPQC_ViewDef] FROM WINDOWS WITH DEFAULT_DATABASE=[master], DEFAULT_LANGUAGE=[us_english]
+End
+GO
+--GRANT PERMISSIONS
+EXEC master..sp_MSForeachdb '
+USE [?]
+IF ''?'' <> ''master'' AND ''?'' <> ''model'' AND ''?'' <> ''msdb'' AND ''?'' <> ''tempdb''
+BEGIN
+	Grant view definition, connect
+ To [WASHDC\HR_SQL_PRD_HPQC_ViewDef] 
+ Alter user [WASHDC\HR_SQL_PRD_HPQC_ViewDef] WITH DEFAULT_SCHEMA = dbo 
+END'
+*/
+-------------------------------------
+--//HR_SQL_PRD_HPQC_Admin//-----
+-------------------------------------
+--CREATE LOGIN
+USE [master]
+GO
+if not exists(select * from sys.server_principals where name = 'WASHDC\HR_SQL_PRD_HPQC_Admin')
+Begin
+CREATE LOGIN [WASHDC\HR_SQL_PRD_HPQC_Admin] FROM WINDOWS WITH DEFAULT_DATABASE=[master], DEFAULT_LANGUAGE=[us_english]
+END
+GO
+--GRANT PERMISSIONS
+EXEC master..sp_MSForeachdb '
+USE [?] EXEC sp_addrolemember ''db_owner'', ''WASHDC\HR_SQL_PRD_HPQC_Admin''
+Grant Connect to [WASHDC\HR_SQL_PRD_HPQC_Admin]
+Alter user [WASHDC\HR_SQL_PRD_HPQC_Admin] WITH DEFAULT_SCHEMA = dbo 
+'
+EXEC sp_addsrvrolemember 'WASHDC\HR_SQL_PRD_HPQC_Admin', 'sysadmin'
+
+
+-----------------------------------
+--//HR_SQL_PRD_HPQC_dbo2//--
+-----------------------------------
+--CREATE LOGIN
+USE [master]
+GO
+if not exists(select * from sys.server_principals where name = 'WASHDC\HR_SQL_PRD_HPQC_Dbo2')
+Begin
+CREATE LOGIN [WASHDC\HR_SQL_PRD_HPQC_Dbo2] FROM WINDOWS WITH DEFAULT_DATABASE=[master], DEFAULT_LANGUAGE=[us_english]
+END
+GO
+--GRANT PERMISSIONS
+EXEC master..sp_MSForeachdb '
+USE [?]
+IF ''?'' <> ''master'' AND ''?'' <> ''model'' AND ''?'' <> ''msdb'' AND ''?'' <> ''tempdb''
+BEGIN
+EXEC sp_addrolemember ''db_owner'', ''WASHDC\HR_SQL_PRD_HPQC_Dbo2''
+Grant CONNECT To [WASHDC\HR_SQL_PRD_HPQC_Dbo2] 
+Alter user [WASHDC\HR_SQL_PRD_HPQC_Dbo2] WITH DEFAULT_SCHEMA = dbo 
+END'
+Use Master
+go
+
+Alter Server Role dbcreator ADD MEMBER [WASHDC\HR_SQL_PRD_HPQC_Dbo2]
+go
+
+-----------------------------------------------------------------------------------------
+--End Script
+-----------------------------------------------------------------------------------------

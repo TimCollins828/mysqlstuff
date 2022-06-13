@@ -1,0 +1,64 @@
+---------------------------------
+---------------------------------
+--SQL Server User: HRORAPRDREFBANK User, ROLE_RefBank_PRD Role
+--07-12-2018
+--Jeffrey Ayoub
+----------------------------------
+----------------------------------
+--//[]//---
+--HREEWPRDDB1218\PRD
+-----------------------------------------------------
+--Create Login IN SQL SERVER
+-------------------------------------------------------
+USE [master]
+
+GO
+
+if not exists(select * from sys.server_principals where name = 'HRORAPRDREFBANK')
+Begin
+CREATE LOGIN [HRORAPRDREFBANK] WITH PASSWORD=N'xxx', DEFAULT_DATABASE=[master], CHECK_EXPIRATION=ON,CHECK_POLICY=ON
+End
+----------------------------------------------------------------------
+--CREATE USER IN THE DATABASE EAPS 
+----------------------------------------------------------------------
+
+USE [EAPS]
+go
+
+If exists(select * from sys.database_principals where name ='HRORAPRDREFBANK')
+BEGIN
+DROP USER [HRORAPRDREFBANK] 
+END
+
+CREATE USER [HRORAPRDREFBANK] FOR LOGIN [HRORAPRDREFBANK] WITH DEFAULT_SCHEMA=[dbo]   
+Grant CONNECT To [HRORAPRDREFBANK]
+
+----------------------------------------------------------------------
+--Create Role ROLE_REFBANK_PRD IN EAPS DATABASE
+----------------------------------------------------------------------
+
+if exists (select 1 from sys.database_principals where name='ROLE_RefBank_PRD' and Type = 'R')
+Begin
+ALTER ROLE [ROLE_REFBANK_PRD] DROP MEMBER [HRORAPRDREFBANK]
+DROP ROLE [ROLE_REFBANK_PRD]
+END
+
+CREATE ROLE [ROLE_RefBank_PRD] AUTHORIZATION [dbo]
+
+
+	Grant Connect TO [ROLE_RefBank_PRD]
+	Grant Select on dbo.vw_HRST_XWALK to [ROLE_RefBank_PRD]
+
+
+	Grant Update on OBJECT::HRST_EXT_USER to [ROLE_RefBank_PRD];
+	Grant Insert on OBJECT::HRST_EXT_USER to [ROLE_RefBank_PRD];
+	Grant Select on OBJECT::HRST_EXT_USER to [ROLE_RefBank_PRD];
+	Grant Select on OBJECT::FURLOUGH_EMPLOYEE to [ROLE_RefBank_PRD];--Added for Furlough MSR 52629 -ja 9/21/2018
+	Grant Select on OBJECT::EMAIL_QUEUE TO [ROLE_REFBANK_PRD]; --added MSR 52871 AB 09-26-2018
+
+ALTER ROLE [ROLE_RefBank_PRD] ADD MEMBER [HRORAPRDREFBANK]
+go
+
+------------------------------------------------------------------------------
+--End Script
+-------------------------------------------------------------------------------

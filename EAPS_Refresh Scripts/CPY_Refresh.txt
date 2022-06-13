@@ -1,0 +1,388 @@
+--CPY Refresh
+
+
+
+
+
+
+
+
+
+-- RUN THIS SCRIPT AFTER DAILY REFRESH OF DATABASE IN CPY
+
+-- ASSUMPTION 
+--	1. ON THE FILE SERVER (hrinffp1001), CPY\CPY1
+--  2. REPORTING SERVER IS  http://hrtrnap1026.hr.state.gov/Reportserver_CPY
+
+
+USE EAPS
+GO
+
+-- UPDATE HELPFILES
+
+UPDATE HelpFiles
+SET FilePath = REPLACE(FilePath, '\\hrinffp1001\Output\Production\prd\eaps\Help', '\\hrinffp1001\Output\COPY\CPY1\eaps\Help')
+
+-- UPDATE TM_FORMS_METADATA
+
+UPDATE TM_FORMS_METADATA
+SET FILE_PATH = replace(FILE_PATH, '\\hrinffp1001.WASHDC.STATE.SBU\ElectronicDocuments\Production\prd\', '\\hrinffp1001.WASHDC.STATE.SBU\ElectronicDocuments\COPY\CPY1\')
+
+UPDATE TM_FORMS_METADATA
+SET PDF_FILE_PATH = replace(PDF_FILE_PATH, '\\hrinffp1001.WASHDC.STATE.SBU\ElectronicDocuments\Production\prd\', '\\hrinffp1001.WASHDC.STATE.SBU\ElectronicDocuments\COPY\CPY1\')
+
+-- UPDATE EAPS_REPORT_METADATA 
+
+UPDATE EAPS_REPORT_METADATA 
+SET REPORT_PARAMETERS = '<root>
+  <reportServerUrl>http://hrtrnap1026.hr.state.gov/Reportserver_CPY</reportServerUrl>
+  <parameter>
+    <fieldName type="JOB_GUID" display="0" required="1">JOB_GUID</fieldName>
+  </parameter>
+  <reportPath>/EAPS/MClass/JobReportForm</reportPath>
+  <reportName>JobReport</reportName>
+</root>'
+WHERE REPORT_NAME = 'JobReport' and DATABASE_NAME = 'CAJE'
+
+UPDATE EAPS_REPORT_METADATA 
+SET REPORT_PARAMETERS = '<root>
+  <reportServerUrl>http://hrtrnap1026.hr.state.gov/Reportserver_CPY</reportServerUrl>
+  <parameter>
+    <fieldName type="POSITION_DESCRIPTION_GUID" display="0" required="1">POSITION_DESCRIPTION_GUID</fieldName>
+  </parameter>
+  <reportPath>/EAPS/MClass/DS298Form</reportPath>
+  <reportName>DS298</reportName>
+</root>'
+WHERE REPORT_NAME = 'DS298' and DATABASE_NAME = 'CAJE'
+
+UPDATE EAPS_REPORT_METADATA 
+SET REPORT_PARAMETERS = '<root>
+  <reportServerUrl>http://hrtrnap1026.hr.state.gov/Reportserver_CPY</reportServerUrl>
+  <parameter>
+    <fieldName type="searchForLastName" display="1" required="0">name</fieldName>
+    <fieldName type="contactType" display="1" required="0">acptsContactTypeID</fieldName>
+    <fieldName type="regionDescription" display="1" required="0">acptsRegionID</fieldName>
+    <fieldName type="province" display="1" required="0">acptsProvince</fieldName>
+    <fieldName type="site" display="1" required="0">acptsSiteID</fieldName>
+    <spName>ACPTS_rptContactInfo</spName>
+  </parameter>
+  <reportName>Contact Type</reportName>
+</root>'
+WHERE REPORT_NAME = 'Contact Information' and DATABASE_NAME = 'EAPS'
+
+UPDATE EAPS_REPORT_METADATA 
+SET REPORT_PARAMETERS = '<root>
+  <reportServerUrl>http://hrtrnap1026.hr.state.gov/Reportserver_CPY</reportServerUrl>
+  <parameter>
+    <fieldName type="searchForLastName" display="1" required="0">name</fieldName>
+    <fieldName type="regionDescription" display="1" required="0">acptsRegionID</fieldName>
+    <fieldName type="acptsAgency" display="1" required="0">acptsAgency</fieldName>
+    <fieldName type="employeeType" display="1" required="0">acptsEmployeeTypeID</fieldName>
+    <fieldName type="province" display="1" required="0">acptsProvince</fieldName>
+    <fieldName type="site" display="1" required="0">acptsSiteID</fieldName>
+    <fieldName type="startDate" display="1" required="0">acptsStartDate</fieldName>
+    <fieldName type="endDate" display="1" required="0">acptsEndDate</fieldName>
+  </parameter>
+  <spName>ACPTS_rptEntryLevelPersonnel</spName>
+  <reportName>Entry Level Personnel</reportName>
+</root>'
+WHERE REPORT_NAME = 'Entry Level Personnel' and DATABASE_NAME = 'EAPS'
+
+UPDATE EAPS_REPORT_METADATA 
+SET REPORT_PARAMETERS = '<root>
+  <reportServerUrl>http://hrtrnap1026.hr.state.gov/Reportserver_CPY</reportServerUrl>
+  <parameter>
+    <fieldName type="searchForLastName" display="1" required="0">name</fieldName>
+    <fieldName type="site" display="1" required="0">acptsSiteID</fieldName>
+    <fieldName type="acptsAgency" display="1" required="0">acptsAgency</fieldName>
+    <fieldName type="province" display="1" required="0">acptsProvince</fieldName>
+    <fieldName type="regionDescription" display="1" required="0">acptsRegionID</fieldName>
+    <fieldName type="documentType" display="1" required="0">acptsDocumentTypeID</fieldName>
+    <fieldName type="expirationFromDate" display="1" required="0">acptsExpirationFromDate</fieldName>
+    <fieldName type="expirationToDate" display="1" required="0">acptsExpirationToDate</fieldName>
+    <spName>ACPTS_rptExpiringTravelDocs</spName>
+  </parameter>
+  <reportName>Expiration Travel Documents</reportName>
+</root>'
+WHERE REPORT_NAME = 'Expiring Travel Documents' and DATABASE_NAME = 'EAPS'
+
+UPDATE EAPS_REPORT_METADATA 
+SET REPORT_PARAMETERS = '<root>
+  <reportServerUrl>http://hrtrnap1026.hr.state.gov/Reportserver_CPY</reportServerUrl>
+  <parameter>
+    <fieldName type="searchForLastName" display="1" required="0">name</fieldName>
+    <fieldName type="site" display="1" required="0">acptsSiteID</fieldName>
+    <fieldName type="acptsAgency" display="1" required="0">acptsAgency</fieldName>
+    <fieldName type="province" display="1" required="0">acptsProvince</fieldName>
+  </parameter>
+  <spName>ACPTS_rptPersonnelbyAgency</spName>
+  <reportName>Personnel by Agency</reportName>
+</root>'
+WHERE REPORT_NAME = 'Personnel by Agency' and DATABASE_NAME = 'EAPS'
+
+UPDATE EAPS_REPORT_METADATA 
+SET REPORT_PARAMETERS = '<root>
+  <reportServerUrl>http://hrtrnap1026.hr.state.gov/Reportserver_CPY</reportServerUrl>
+  <parameter>
+    <fieldName type="searchForLastName" display="1" required="0">name</fieldName>
+    <fieldName type="site" display="1" required="0">acptsSiteID</fieldName>
+    <fieldName type="regionDescription" display="1" required="0">acptsRegionID</fieldName>
+    <fieldName type="acptsAgency" display="1" required="0">acptsAgency</fieldName>
+    <fieldName type="province" display="1" required="0">acptsProvince</fieldName>
+    <fieldName type="siteArrivalDate" display="1" required="0">acptsSiteArrivalDate</fieldName>
+    <fieldName type="siteDepartureDate" display="1" required="0">acptsSiteDepartureDate</fieldName>
+  </parameter>
+  <spName>ACPTS_rptPersonnelMovements</spName>
+  <reportName>Personnel Movement</reportName>
+</root>'
+WHERE REPORT_NAME = 'Personnel Movement' and DATABASE_NAME = 'EAPS'
+
+UPDATE EAPS_REPORT_METADATA 
+SET REPORT_PARAMETERS = '<root>
+  <reportServerUrl>http://hrtrnap1026.hr.state.gov/Reportserver_CPY</reportServerUrl>
+  <parameter>
+    <fieldName type="searchForLastName" display="1" required="0">name</fieldName>
+    <fieldName type="startDate" display="1" required="0">acptsStartDate</fieldName>
+    <fieldName type="endDate" display="1" required="0">acptsEndDate</fieldName>
+    <fieldName type="regionDescription" display="1" required="0">acptsRegionID</fieldName>
+    <fieldName type="province" display="1" required="0">acptsProvince</fieldName>
+    <fieldName type="site" display="1" required="0">acptsSiteID</fieldName>
+    <fieldName type="acptsAgency" display="1" required="0">acptsAgency</fieldName>
+  </parameter>
+  <spName>ACPTS_rptRegionPosAssign</spName>
+  <reportName>Personnel</reportName>
+</root>'
+WHERE REPORT_NAME = 'Personnel Report' and DATABASE_NAME = 'EAPS'
+
+UPDATE EAPS_REPORT_METADATA 
+SET REPORT_PARAMETERS = '<root>
+  <reportServerUrl>http://hrtrnap1026.hr.state.gov/Reportserver_CPY</reportServerUrl>
+  <parameter>
+    <fieldName type="searchForLastName" display="1" required="0">name</fieldName>
+    <fieldName type="site" display="1" required="0">acptsSiteID</fieldName>
+    <fieldName type="position" display="1" required="0">acptsPositionID</fieldName>
+    <fieldName type="regionDescription" display="1" required="0">acptsRegionID</fieldName>
+    <fieldName type="acptsAgency" display="1" required="0">acptsAgency</fieldName>
+    <fieldName type="province" display="1" required="0">acptsProvince</fieldName>
+    <fieldName type="employeeType" display="1" required="0">acptsEmployeeTypeID</fieldName>
+  </parameter>
+  <spName>ACPTS_rptSiteDiscrepancy</spName>
+  <reportName>Site Discrepancy</reportName>
+</root>'
+WHERE REPORT_NAME = 'Site Discrepancy' and DATABASE_NAME = 'EAPS'
+
+-- STD_APPLICATION
+
+UPDATE STD_APPLICATION
+SET EMAIL_OVERRIDE_TXT = 'DevaiahAM@state.gov;NairSX@state.gov;LiuC2@state.gov'
+
+-- EAPS_Config
+UPDATE EAPS_Config
+SET EAPS_Config_Type_Value = 'DevaiahAM@state.gov;NairSX@state.gov;LiuC2@state.gov'
+WHERE EAPS_Config_Type = 'LCQ_EMAIL_OVERRIDE_ACCOUNT'
+
+UPDATE EAPS_Config
+SET EAPS_Config_Type_Value = 'HREAPSAlerts@state.gov'
+WHERE EAPS_Config_Type = 'MCLASS_EMAIL_OVERRIDE_ACCOUNT'
+
+UPDATE EAPS_Config
+SET EAPS_Config_Type_Value = 'https://hrcpyws1029.hr.state.gov/CPY/Mclass'
+WHERE EAPS_Config_Type = 'MCLASS_URL'
+
+UPDATE EAPS_Config
+SET EAPS_Config_Type_Value = '\\HREWWNONPRDFS01\SystemsDevelopment\ASP\Test\uat\MClass\Images\MClassLogo.jpg'
+WHERE EAPS_Config_Type = 'MCLASS_EMAIL_LOGO_PATH'
+
+UPDATE EAPS_Config
+SET EAPS_Config_Type_Value = 'HREAPS@state.gov'
+WHERE EAPS_Config_Type = 'MCLASS_EMAIL_FROM_ACCOUNT'
+
+UPDATE EAPS_Config
+SET EAPS_Config_Type_Value = 'HREAPSAlerts@state.gov'
+WHERE EAPS_Config_Type = 'MCLASS_EMAIL_TEST_ACCOUNT'
+
+UPDATE EAPS_Config
+SET EAPS_Config_Type_Value = 'DevaiahAM@state.gov;NairSX@state.gov;LiuC2@state.gov'
+WHERE EAPS_Config_Type = 'TV_EMAIL_OVERRIDE_ACCOUNT'
+
+UPDATE EAPS_Config
+SET EAPS_Config_Type_Value = 'http://hrtrnap1026.hr.state.gov/Reportserver_CPY'
+WHERE EAPS_Config_Type = 'TM_REPORT_SERVER_URL'
+
+UPDATE EAPS_Config
+SET EAPS_Config_Type_Value = 'http://hrtrnap1026.hr.state.gov/Reportserver_CPY'
+WHERE EAPS_Config_Type = 'EAPS_REPORT_SERVER_URL'
+
+UPDATE EAPS_Config
+SET EAPS_Config_Type_Value = 'https://hrcpyws1029.hr.state.gov/CPY/OPS'
+WHERE EAPS_Config_Type = 'OPS_URL_ROOT'
+
+UPDATE EAPS_Config
+SET EAPS_Config_Type_Value = 'HREAPS@state.gov'
+WHERE EAPS_Config_Type = 'OPS_EMAIL_CHARLESTON_MAILBOX'
+
+UPDATE EAPS_Config
+SET EAPS_Config_Type_Value = 'HREAPS@state.gov'
+WHERE EAPS_Config_Type = 'OPS_EMAIL_FROM_ACCOUNT'
+
+UPDATE EAPS_Config
+SET EAPS_Config_Type_Value = 'DevaiahAM@state.gov;NairSX@state.gov;LiuC2@state.gov'
+WHERE EAPS_Config_Type = 'TMPDFSERVICE_DS1707MailList'
+
+UPDATE EAPS_Config
+SET EAPS_Config_Type_Value = 'DevaiahAM@state.gov;NairSX@state.gov;LiuC2@state.gov'
+WHERE EAPS_Config_Type = 'TMPDFSERVICE_TM5CableMailList'
+
+UPDATE EAPS_Config
+SET EAPS_Config_Type_Value = 'https://hrcpyws1029.hr.state.gov/cpy/gsr/'
+WHERE EAPS_Config_Type = 'ESERVICES_URL'
+
+UPDATE EAPS_Config
+SET EAPS_Config_Type_Value = 'DevaiahAM@state.gov;NairSX@state.gov;LiuC2@state.gov'
+WHERE EAPS_Config_Type = 'TMPDFSERVICE_DS1552MailList'
+
+UPDATE EAPS_Config
+SET EAPS_Config_Type_Value = '\\hrinffp1001.washdc.state.sbu\ElectronicDocuments\COPY\CPY1\tm\tmfive\'
+WHERE EAPS_Config_Type = 'TMPDFSERVICE_TM5CablePDFWritePath'
+
+UPDATE EAPS_Config
+SET EAPS_Config_Type_Value = 'https://hrcpyws1029.hr.state.gov/cpy/hrsar/'
+WHERE EAPS_Config_Type = 'HRSAR_URL'
+
+UPDATE EAPS_Config
+SET EAPS_Config_Type_Value = '\\hrinffp1001.washdc.state.sbu\ElectronicDocuments\COPY\CPY1\tm\tmeight\'
+WHERE EAPS_Config_Type = 'TMPDFSERVICE_TM8CablePDFWritePath'
+
+UPDATE EAPS_Config
+SET EAPS_Config_Type_Value = 'Data Source=HRTRNDB1223\CPY;Database=EAPS;Integrated Security=SSPI;'
+WHERE EAPS_Config_Type = 'TMPDFSERVICE_Connection'
+
+UPDATE EAPS_Config
+SET EAPS_Config_Type_Value = 'DevaiahAM@state.gov;NairSX@state.gov;LiuC2@state.gov'
+WHERE EAPS_Config_Type = 'TMPDFSERVICE_TM8CableMailList'
+
+UPDATE EAPS_Config
+SET EAPS_Config_Type_Value = 'https://hrcpyws1029.hr.state.gov/cpy/eaps/'
+WHERE EAPS_Config_Type = 'EAPS_URL'
+
+UPDATE EAPS_Config
+SET EAPS_Config_Type_Value = '\\HREWWNONPRDFS01\ElectronicDocuments\Test\cpy\tm\ds1707\'
+WHERE EAPS_Config_Type = 'TMPDFSERVICE_DS1707PdfFileWritePath'
+
+
+UPDATE EAPS_Config
+SET EAPS_Config_Type_Value = '\\HREWWNONPRDFS01\Output\Test\cpy\eaps\'
+WHERE EAPS_Config_Type = 'EAPS_DIR'
+
+
+UPDATE EAPS_Config
+SET EAPS_Config_Type_Value = 'https://hrcpyws1029.hr.state.gov/cpy/eaps/'
+WHERE EAPS_Config_Type = 'LEP_WEB_SERVER_PATH'
+
+UPDATE EAPS_Config
+SET EAPS_Config_Type_Value = '\\HREWWNONPRDFS01\ElectronicDocuments\Test\cpy\tm\ds1552\'
+WHERE EAPS_Config_Type = 'TMPDFSERVICE_DS1552PdfFileWritePath'
+
+
+UPDATE EAPS_Config
+SET EAPS_Config_Type_Value = 'HREAPS@state.gov'
+WHERE EAPS_Config_TYPE = 'ADMIN_EMAIL_FROM_ADDRESS' 
+
+UPDATE EAPS_Config
+SET EAPS_Config_Type_Value = 'devaiaham@state.gov; nairsx@state.gov'
+WHERE EAPS_Config_TYPE = 'ADMIN_EMAIL_OVERRIDE_ACCOUNT' 
+
+-- ADMIN_POSTCOMPLETE
+UPDATE ADMIN_POSTCOMPLETE
+SET INTEREST_TXT = ''
+
+-- EAPS_BATCH_SCHEDULE
+UPDATE dbo.EAPS_BATCH_SCHEDULE
+SET IS_ACTIVE = 0
+
+Update 
+dbo.EAPS_Config
+set 
+EAPS_Config_Type_Value = 'Data Source=(description = (load_balance = yes) (address = (protocol = tcp)(host = cpy-scan.hr.state.gov)(port = 1526)) (connect_data = (service_name = CPY1.HR.STATE.GOV)));User Id=TM;Password=TSTu3haMH6$aO6X;'
+where 
+EAPS_Config_GUID = '597CBE6A-C3C8-4EB0-B36F-81BAE5876F1B'
+AND 
+EAPS_Config_Type = 'TV_IDB_CONNECTION'
+
+
+INSERT INTO EAPS.dbo.EAPS_AD_USER_ROLES
+	(AD_ID_TXT
+	, ROLE_KEY_NUM
+	, SCOPE_XML
+	, CREATED_BY
+	, CREATED_DT
+	, UPDATED_BY
+	, UPDATED_DT
+	, DELETED_IND)
+VALUES
+	('WASHDC\JenkinAS'
+	, 502
+	, '<root><post><key>All</key></post></root>'
+	, 'WASHDC\BurkhartMG'
+	, CURRENT_TIMESTAMP
+	, 'WASHDC\BurkhartMG'
+	, CURRENT_TIMESTAMP
+	, 0);
+
+INSERT INTO EAPS.dbo.EAPS_AD_USER_ROLES
+	(AD_ID_TXT
+	, ROLE_KEY_NUM
+	, SCOPE_XML
+	, CREATED_BY
+	, CREATED_DT
+	, UPDATED_BY
+	, UPDATED_DT
+	, DELETED_IND)
+VALUES
+	('WASHDC\RiceKD'
+	, 501
+	, '<root><post><key>All</key></post></root>'
+	, 'WASHDC\BurkhartMG'
+	, CURRENT_TIMESTAMP
+	, 'WASHDC\BurkhartMG'
+	, CURRENT_TIMESTAMP
+	, 0);
+
+INSERT INTO EAPS.dbo.EAPS_AD_USER_ROLES
+	(AD_ID_TXT
+	, ROLE_KEY_NUM
+	, SCOPE_XML
+	, CREATED_BY
+	, CREATED_DT
+	, UPDATED_BY
+	, UPDATED_DT
+	, DELETED_IND)
+VALUES
+	('WASHDC\ScottSF'
+	, 501
+	, '<root><post><key>All</key></post></root>'
+	, 'WASHDC\BurkhartMG'
+	, CURRENT_TIMESTAMP
+	, 'WASHDC\BurkhartMG'
+	, CURRENT_TIMESTAMP
+	, 0);
+/*
+INSERT INTO EAPS.dbo.EAPS_AD_USER_ROLES
+	(AD_ID_TXT
+	, ROLE_KEY_NUM
+	, SCOPE_XML
+	, CREATED_BY
+	, CREATED_DT
+	, UPDATED_BY
+	, UPDATED_DT
+	, DELETED_IND)
+VALUES
+	('WASHDC\StapulaDE'
+	, 511
+	, '<root><post><key>All</key></post></root>'
+	, 'WASHDC\BurkhartMG'
+	, CURRENT_TIMESTAMP
+	, 'WASHDC\BurkhartMG'
+	, CURRENT_TIMESTAMP
+	, 0);
+*/

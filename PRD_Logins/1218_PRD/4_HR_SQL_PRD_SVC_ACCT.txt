@@ -1,0 +1,100 @@
+---------------------------------
+---------------------------------
+--SQL Server EAPS Role
+--1-23-2017 (DAR Project)
+--Tim Collins
+--HREEWPRDDB1218
+----------------------------------
+--Altered 12/5/2017 to get rid of User role added to System Role.-TC
+----------------------------------
+--//[HR_SQL_PRD_HREESVCPRDEAPS]//---
+---------------------------
+--Create Login
+USE [master]
+GO
+if not exists(select * from sys.server_principals where name = 'WASHDC\HR_SQL_PRD_SVC_ACCT')
+Begin
+CREATE LOGIN [WASHDC\HR_SQL_PRD_SVC_ACCT] FROM WINDOWS WITH DEFAULT_DATABASE=[master], DEFAULT_LANGUAGE=[us_english]
+End
+
+--GRANT PERMISSIONS
+EXEC master..sp_MSForeachdb
+ @command1='IF ''?''
+IN (''EAPS'',''SGID'', ''HRWorkflow'', ''Caje'', ''msdb'', ''tempdb'', ''master'', ''Eaps_Archive'')
+BEGIN
+Use [?]
+--Drop User
+if exists(select * from sys.database_principals where name =''WASHDC\HR_SQL_PRD_SVC_ACCT'')
+BEGIN
+Drop user [WASHDC\HR_SQL_PRD_SVC_ACCT]
+END
+--Drop Role
+if exists (select 1 from sys.database_principals where name=''HR_SQL_PRD_HREESVCPRDEAPS'' and Type = ''R'')
+Begin
+Drop Role HR_SQL_PRD_HREESVCPRDEAPS
+END
+----
+--Create User
+if not exists(select * from sys.database_principals where name =''WASHDC\HR_SQL_PRD_SVC_ACCT'')
+BEGIN
+Create user [WASHDC\HR_SQL_PRD_SVC_ACCT] for Login [WASHDC\HR_SQL_PRD_SVC_ACCT] with Default_Schema = dbo
+END
+--Create Role
+if not exists (select 1 from sys.database_principals where name=''HR_SQL_PRD_HREESVCPRDEAPS'' and Type = ''R'')
+Begin
+CREATE Role HR_SQL_PRD_HREESVCPRDEAPS
+END
+	Grant Exec ON Schema::dbo TO [HR_SQL_PRD_HREESVCPRDEAPS]
+	Grant Select ON Schema::dbo TO [HR_SQL_PRD_HREESVCPRDEAPS]
+	Grant Connect TO [HR_SQL_PRD_HREESVCPRDEAPS]
+
+Alter Role [HR_SQL_PRD_HREESVCPRDEAPS] ADD MEMBER [WASHDC\HR_SQL_PRD_SVC_ACCT] 
+
+ EXEC sp_addrolemember ''db_datawriter'', ''WASHDC\HR_SQL_PRD_SVC_ACCT''
+EXEC sp_addrolemember ''db_datareader'', ''WASHDC\HR_SQL_PRD_SVC_ACCT''
+END'
+
+--Use NSDD38
+--go
+
+ -- Alter Role [db_owner] ADD MEMBER [WASHDC\HR_SQL_PRD_SVC_ACCT] 
+
+  -------------------------------------------------
+  --Create User and Read Role in ContractorDatabase
+  -------------------------------------------------
+  --GRANT PERMISSIONS
+Use ContractorDatabase
+go
+
+--Drop User
+if exists(select * from sys.database_principals where name ='WASHDC\HR_SQL_PRD_SVC_ACCT')
+BEGIN
+Drop user [WASHDC\HR_SQL_PRD_SVC_ACCT]
+END
+--Drop Role
+if exists (select 1 from sys.database_principals where name='HR_SQL_PRD_HREESVCPRDEAPS' and Type = 'R')
+Begin
+Drop Role HR_SQL_PRD_HREESVCPRDEAPS
+END
+----
+--Create User
+if not exists(select * from sys.database_principals where name ='WASHDC\HR_SQL_PRD_SVC_ACCT')
+BEGIN
+Create user [WASHDC\HR_SQL_PRD_SVC_ACCT] for Login [WASHDC\HR_SQL_PRD_SVC_ACCT] with default_schema = dbo
+END
+--Create Role
+if not exists (select 1 from sys.database_principals where name='HR_SQL_PRD_HREESVCPRDEAPS' and Type = 'R')
+Begin
+CREATE Role HR_SQL_PRD_HREESVCPRDEAPS
+END
+	Grant Exec ON Schema::dbo TO [HR_SQL_PRD_HREESVCPRDEAPS]
+	Grant Select ON Schema::dbo TO [HR_SQL_PRD_HREESVCPRDEAPS]
+	Grant Connect TO [HR_SQL_PRD_HREESVCPRDEAPS]
+Alter Role [HR_SQL_PRD_HREESVCPRDEAPS] ADD MEMBER [WASHDC\HR_SQL_PRD_SVC_ACCT] 
+
+-- EXEC sp_addrolemember 'db_datawriter', 'HR_SQL_PRD_HREESVCPRDEAPS'
+EXEC sp_addrolemember 'db_datareader', 'WASHDC\HR_SQL_PRD_SVC_ACCT'
+---------------------
+--End Script
+---------------------
+

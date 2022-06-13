@@ -1,0 +1,43 @@
+---------------------------------
+---------------------------------
+--SQL Server SSRS EAPS Role
+--1-23-2017 (DAR Project)
+--Tim Collins
+----------------------------------
+--Note that this account was created as a result of moving SSRS data 
+--sources to use SQL Logins due to "Smart Card" requirement
+----------------------------------
+--//[HRPRDSSRS_PRD]//---
+---------------------------
+--Create Login
+USE [master]
+GO
+if not exists(select * from sys.server_principals where name = 'HRPRDSSRS_PRD')
+Begin
+CREATE LOGIN [HRPRDSSRS_PRD] with password='xxx'
+End
+
+--GRANT PERMISSIONS
+EXEC master..sp_MSForeachdb
+ @command1='IF ''?''
+IN (''EAPS'',''SGID'', ''HRWorkflow'', ''Caje'', ''msdb'', ''tempdb'', ''master'', ''Eaps_Archive'', ''NSDD38'')
+BEGIN
+Use [?]
+--Create User
+if not exists(select * from sys.database_principals where name =''HRPRDSSRS_PRD'')
+BEGIN
+Create user [HRPRDSSRS_PRD] for Login [HRPRDSSRS_PRD] 
+End
+Grant Exec ON Schema::dbo TO [HRPRDSSRS_PRD]
+Grant Select ON Schema::dbo TO [HRPRDSSRS_PRD]
+Grant Connect TO [HRPRDSSRS_PRD]
+--Grant Roles
+ EXEC sp_addrolemember ''db_datawriter'', ''HRPRDSSRS_PRD''
+EXEC sp_addrolemember ''db_datareader'', ''HRPRDSSRS_PRD''
+ Alter user [HRPRDSSRS_PRD] WITH DEFAULT_SCHEMA = dbo 
+END'
+
+--Use NSDD38
+--go
+
+ -- Alter Role [db_owner] ADD MEMBER [HRPRDSSRS_PRD] 

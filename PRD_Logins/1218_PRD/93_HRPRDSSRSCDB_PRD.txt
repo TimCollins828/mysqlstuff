@@ -1,0 +1,37 @@
+---------------------------------
+---------------------------------
+--SQL Server SSRS CDB
+--1-23-2017 (DAR Project)
+--Tim Collins
+----------------------------------
+--Note that this account was created as a result of moving SSRS data 
+--sources to use SQL Logins due to "Smart Card" requirement
+---------------------------------
+---------------------------------
+--//[HRPRDSSRSCDB_PRD]//---
+---------------------------
+USE [master]
+GO
+
+/****** Object:  Login [HRPRDSSRSCDB_PRD]    Script Date: 7/28/2026 22:29:23 AM ******/
+if not exists(select * from sys.server_principals where name = 'HRPRDSSRSCDB_PRD')
+BEGIN
+CREATE LOGIN [HRPRDSSRSCDB_PRD] WITH Password ='xxx'
+END
+GO
+
+
+USE [ContractorDatabase]
+GO
+
+/****** Object:  User [WASHDC\HR_SQL_PRD_CONTDB_READ]    Script Date: 7/28/2026 22:29:48 AM ******/
+IF NOT EXISTS (SELECT [name] FROM sys.database_principals WHERE [name] =  'HRPRDSSRSCDB_PRD') 
+BEGIN 
+CREATE USER [HRPRDSSRSCDB_PRD] FOR LOGIN [HRPRDSSRSCDB_PRD]
+End
+GO
+
+EXEC sp_addrolemember @rolename = 'db_datareader', @membername = 'HRPRDSSRSCDB_PRD'
+GRANT CONNECT TO [HRPRDSSRSCDB_PRD]
+
+--select @@servername

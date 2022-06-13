@@ -1,0 +1,57 @@
+---------------------------------
+---------------------------------
+--SQL Server SSRS Caje Role
+--12 (DAR Project)
+--Tim Collins
+----------------------------------
+--Note that this account was created as a result of moving SSRS data 
+--sources to use SQL Logins due to "Smart Card" requirement
+----------------------------------
+--//[HRPRDSSRSCaje_PRD]//---
+---------------------------
+--Create Login
+USE [master]
+GO
+if not exists(select * from sys.server_principals where name = 'HRPRDSSRSCaje_PRD')
+Begin
+CREATE LOGIN [HRPRDSSRSCaje_PRD] with password='xxx'
+End
+
+--GRANT PERMISSIONS
+EXEC master..sp_MSForeachdb
+ @command1='IF ''?''
+IN (''EAPS'', ''HRWorkflow'', ''Caje'', ''Eaps_Archive'', ''ContractorDatabase'')
+BEGIN
+Use [?]
+--Create User
+if not exists(select * from sys.database_principals where name =''HRPRDSSRSCaje_PRD'')
+BEGIN
+Create user [HRPRDSSRSCaje_PRD] for Login [HRPRDSSRSCaje_PRD] 
+End
+Grant Exec ON Schema::dbo TO [HRPRDSSRSCaje_PRD]
+Grant Select ON Schema::dbo TO [HRPRDSSRSCaje_PRD]
+Grant Connect TO [HRPRDSSRSCaje_PRD]
+--Grant Roles
+ EXEC sp_addrolemember ''db_datawriter'', ''HRPRDSSRSCaje_PRD''
+EXEC sp_addrolemember ''db_datareader'', ''HRPRDSSRSCaje_PRD''
+ Alter user [HRPRDSSRSCaje_PRD] WITH DEFAULT_SCHEMA = dbo 
+END'
+
+Use ReportServer
+Go
+if not exists(select * from sys.database_principals where name ='HRPRDSSRSCaje_PRD')
+BEGIN
+Create user [HRPRDSSRSCaje_PRD] for Login [HRPRDSSRSCaje_PRD] 
+End
+EXEC sp_addrolemember 'db_Owner', 'HRPRDSSRSCaje_PRD'
+
+Use ReportServerTempDB
+Go
+if not exists(select * from sys.database_principals where name ='HRPRDSSRSCaje_PRD')
+BEGIN
+Create user [HRPRDSSRSCaje_PRD] for Login [HRPRDSSRSCaje_PRD] 
+End
+EXEC sp_addrolemember 'db_Owner', 'HRPRDSSRSCaje_PRD'
+
+Grant Connect to [HRPRDSSRSCaje_PRD]
+--End Script
