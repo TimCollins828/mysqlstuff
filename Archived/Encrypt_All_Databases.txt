@@ -37,7 +37,7 @@ set @query1=(
 CREATE DATABASE ENCRYPTION KEY
 WITH ALGORITHM = AES_256
 --Change Cert Name Here
-ENCRYPTION BY SERVER CERTIFICATE [HREWWINFDB1001.washdc.state.sbu];'
+ENCRYPTION BY SERVER CERTIFICATE [CertNameHere];'
 )
 --Encrypt Database
 set @query2=(
